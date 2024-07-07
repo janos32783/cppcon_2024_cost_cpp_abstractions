@@ -1,107 +1,100 @@
-/* ".section <section_name>" starts a new code or data section. */
-/* Sections in GNU are called                                   */
-/*   - .text : code section                                     */
-/*   - .data : initialized data section                         */
-/*   - .bss  : uninitialized data                               */
+/**
+  ******************************************************************************
+  * @file      startup_stm32f030xc.s
+  * @author    MCD Application Team
+  * @brief     STM32F030xc/STM32F030xb devices vector table for GCC toolchain.
+  *            This module performs:
+  *                - Set the initial SP
+  *                - Set the initial PC == Reset_Handler,
+  *                - Set the vector table entries with the exceptions ISR address
+  *                - Branches to main in the C library (which eventually
+  *                  calls main()).
+  *            After Reset the Cortex-M0 processor is in Thread mode,
+  *            priority is Privileged, and the Stack is set to Main.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 
-/* ".word <word>" inserts a (list) of 32-bit word values as     */
-/* data into the assembly.                                      */
-
-/* "global <symbol>" gives the symbol external linkage.         */
-
-/* "equ <symbol_name>, <value>" sets the value of a symbol.     */
-
-/* The '.' symbol in an expression means the current value of   */
-/* location counter.                                            */
-
-
-
-.syntax unified
-.cpu cortex-m0
-.fpu softvfp
-.thumb
+  .syntax unified
+  .cpu cortex-m0
+  .fpu softvfp
+  .thumb
 
 .global g_pfnVectors
 .global Default_Handler
 
-/* start address for the initialization values of the .data section. defined in linker script */
+/* start address for the initialization values of the .data section.
+defined in linker script */
 .word _sidata
-
 /* start address for the .data section. defined in linker script */
 .word _sdata
-
 /* end address for the .data section. defined in linker script */
 .word _edata
-
 /* start address for the .bss section. defined in linker script */
 .word _sbss
-
 /* end address for the .bss section. defined in linker script */
 .word _ebss
 
-/* Create the section ".text.Reset_Handler". Then create a weak name, meaning that if it does not */
-/* already exist, it will be created. Also, tell the assembler that the name "Reset_Handler" is   */
-/* a function name.                                                                               */
-
-.section .text.Reset_Handler
-.weak Reset_Handler
-.type Reset_Handler, %function
-
+  .section .text.Reset_Handler
+  .weak Reset_Handler
+  .type Reset_Handler, %function
 Reset_Handler:
-    /* set stack pointer to the end of the stack */
-    ldr   r0, =_estack
-    mov   sp, r0
-    /* Copy the data segment initializers from flash to SRAM */
-    ldr r0, =_sdata
-    ldr r1, =_edata
-    ldr r2, =_sidata
-    movs r3, #0
-    b LoopCopyDataInit
+  ldr   r0, =_estack
+  mov   sp, r0          /* set stack pointer */
+  
+/* Call the clock system initialization function.*/
+  //bl  SystemInit
+
+/* Copy the data segment initializers from flash to SRAM */
+  ldr r0, =_sdata
+  ldr r1, =_edata
+  ldr r2, =_sidata
+  movs r3, #0
+  b LoopCopyDataInit
 
 CopyDataInit:
-    ldr r4, [r2, r3]
-    str r4, [r0, r3]
-    adds r3, r3, #4
+  ldr r4, [r2, r3]
+  str r4, [r0, r3]
+  adds r3, r3, #4
 
 LoopCopyDataInit:
-    adds r4, r0, r3
-    cmp r4, r1
-    bcc CopyDataInit
+  adds r4, r0, r3
+  cmp r4, r1
+  bcc CopyDataInit
   
-    /* Zero fill the bss segment. */
-    ldr r2, =_sbss
-    ldr r4, =_ebss
-    movs r3, #0
-    b LoopFillZerobss
+/* Zero fill the bss segment. */
+  ldr r2, =_sbss
+  ldr r4, =_ebss
+  movs r3, #0
+  b LoopFillZerobss
 
 FillZerobss:
-    str  r3, [r2]
-    adds r2, r2, #4
+  str  r3, [r2]
+  adds r2, r2, #4
 
 LoopFillZerobss:
-    cmp r2, r4
-    bcc FillZerobss
+  cmp r2, r4
+  bcc FillZerobss
 
-    /* 'bl' places the return address in the link register and sets */
-    /* the program counter to the address of the subroutine.        */
-    /* After the subroutine, you can use 'bx lx' instruction to     */
-    /* return.                                                      */
-
-    /* Call the clock system intitialization function.*/
-    //bl  SystemInit
-    /* Call static constructors */
-    bl __libc_init_array
-    /* Call the application's entry point.*/
-    bl main
+/* Call static constructors */
+  bl __libc_init_array
+/* Call the application's entry point.*/
+  bl main
 
 LoopForever:
     b LoopForever
 
-/* The size associated with the symbol name "Reset_Handler" is set to the current */
-/* position of the location counter minus the Reset_Handler label position.       */
+
 .size Reset_Handler, .-Reset_Handler
-
-
 
 /**
  * @brief  This is the code that gets called when the processor receives an
@@ -111,17 +104,11 @@ LoopForever:
  * @param  None
  * @retval : None
 */
-/* The name of the following section is ".text.Default_Handler". It is       */
-/* allocatable ('a' falg) and executable ('x' flag) and is of type           */
-/* "progbits", meaning that the section contains data.                       */
-
-.section .text.Default_Handler,"ax",%progbits
+    .section .text.Default_Handler,"ax",%progbits
 Default_Handler:
 Infinite_Loop:
-    b Infinite_Loop
-    .size Default_Handler, .-Default_Handler
-
-
+  b Infinite_Loop
+  .size Default_Handler, .-Default_Handler
 /******************************************************************************
 *
 * The minimal vector table for a Cortex M0.  Note that the proper constructs
@@ -129,9 +116,10 @@ Infinite_Loop:
 * 0x0000.0000.
 *
 ******************************************************************************/
-.section .isr_vector,"a",%progbits
-.type g_pfnVectors, %object
-.size g_pfnVectors, .-g_pfnVectors
+   .section .isr_vector,"a",%progbits
+  .type g_pfnVectors, %object
+  .size g_pfnVectors, .-g_pfnVectors
+
 
 g_pfnVectors:
   .word  _estack
@@ -167,23 +155,20 @@ g_pfnVectors:
   .word  TIM1_CC_IRQHandler                /* TIM1 Capture Compare         */
   .word  0                                 /* Reserved                     */
   .word  TIM3_IRQHandler                   /* TIM3                         */
-  .word  0                                 /* Reserved                     */
-  .word  0                                 /* Reserved                     */
+  .word  TIM6_IRQHandler                   /* TIM6                         */
+  .word  TIM7_IRQHandler                   /* TIM7                         */
   .word  TIM14_IRQHandler                  /* TIM14                        */
-  .word  0                                 /* Reserved                     */
+  .word  TIM15_IRQHandler                  /* TIM15                        */
   .word  TIM16_IRQHandler                  /* TIM16                        */
   .word  TIM17_IRQHandler                  /* TIM17                        */
   .word  I2C1_IRQHandler                   /* I2C1                         */
-  .word  0                                 /* Reserved                     */
+  .word  I2C2_IRQHandler                   /* I2C2                         */
   .word  SPI1_IRQHandler                   /* SPI1                         */
-  .word  0                                 /* Reserved                     */
+  .word  SPI2_IRQHandler                   /* SPI2                         */
   .word  USART1_IRQHandler                 /* USART1                       */
+  .word  USART2_IRQHandler                 /* USART2                       */
+  .word  USART3_6_IRQHandler               /* USART3, USART4, USART5, USART6 */
   .word  0                                 /* Reserved                     */
-  .word  0                                 /* Reserved                     */
-  .word  0                                 /* Reserved                     */
-  .word  0                                 /* Reserved                     */
-
-
 
 /*******************************************************************************
 *
@@ -250,8 +235,17 @@ g_pfnVectors:
   .weak      TIM3_IRQHandler
   .thumb_set TIM3_IRQHandler,Default_Handler
 
+  .weak      TIM6_IRQHandler
+  .thumb_set TIM6_IRQHandler,Default_Handler
+
+  .weak      TIM7_IRQHandler
+  .thumb_set TIM7_IRQHandler,Default_Handler
+
   .weak      TIM14_IRQHandler
   .thumb_set TIM14_IRQHandler,Default_Handler
+
+  .weak      TIM15_IRQHandler
+  .thumb_set TIM15_IRQHandler,Default_Handler
 
   .weak      TIM16_IRQHandler
   .thumb_set TIM16_IRQHandler,Default_Handler
@@ -262,9 +256,23 @@ g_pfnVectors:
   .weak      I2C1_IRQHandler
   .thumb_set I2C1_IRQHandler,Default_Handler
 
+  .weak      I2C2_IRQHandler
+  .thumb_set I2C2_IRQHandler,Default_Handler
+
   .weak      SPI1_IRQHandler
   .thumb_set SPI1_IRQHandler,Default_Handler
 
+  .weak      SPI2_IRQHandler
+  .thumb_set SPI2_IRQHandler,Default_Handler
+
   .weak      USART1_IRQHandler
   .thumb_set USART1_IRQHandler,Default_Handler
+
+  .weak      USART2_IRQHandler
+  .thumb_set USART2_IRQHandler,Default_Handler
+
+  .weak      USART3_6_IRQHandler
+  .thumb_set USART3_6_IRQHandler,Default_Handler
+
+
 
