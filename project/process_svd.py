@@ -2,6 +2,7 @@ import sys
 import os
 from os.path import exists
 import xmltodict
+import jinja2
 from util.gpio import process_gpio
 
 if len(sys.argv) != 2:
@@ -19,13 +20,13 @@ with open(svd_filename, 'r', encoding='utf-8') as file:
 
 my_dict = xmltodict.parse(my_xml, force_list={'field'})
 
-xml_device = my_dict["device"]
-mcu_name = xml_device["name"]
-version = xml_device["version"]
+device_dict = my_dict["device"]
+mcu_name = device_dict["name"]
+version = device_dict["version"]
 
 print("generating header files for '" + mcu_name + "' version " + version)
 
-cpu = xml_device["cpu"]
+cpu = device_dict["cpu"]
 
 print("CPU")
 print("    name                  : " + cpu["name"])
@@ -36,12 +37,24 @@ print("    FPU present           : " + cpu["fpuPresent"])
 print("    NVIC prio bits        : " + cpu["nvicPrioBits"])
 print("    vendor systick config : " + cpu["vendorSystickConfig"])
 
-width = xml_device["width"]
+width = device_dict["width"]
 data_prefix = "constexpr"
 data_type = "std::uint" + width + "_t"
 data_macro = "UINT" + width + "_C"
 
-os.makedirs(os.path.dirname("hal/gpio/constants.hpp"), exist_ok=True)
-f = open("hal/gpio/constants.hpp", "w")
-f.write(process_gpio(xml_device, data_prefix, data_type, data_macro))
-f.close()
+template_loader = jinja2.FileSystemLoader(searchpath="./")
+template_env = jinja2.Environment(loader=template_loader)
+
+# template files
+gpio_template = template_env.get_template("hal/gpio/constants.j2")
+
+# parse the SVD file
+gpios = process_gpio(device_dict)
+
+outputText = gpio_template.render(data_prefix=data_prefix,
+                                  data_type=data_type,
+                                  data_macro=data_macro,
+                                  gpios=gpios)
+
+with open(r'hal/gpio/constants.hpp', 'w') as fp:
+    fp.write(outputText)

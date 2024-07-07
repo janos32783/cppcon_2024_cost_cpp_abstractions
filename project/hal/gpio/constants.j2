@@ -7,3 +7,71 @@
 namespace hal {
 
 // GPIO register base addresses
+{%- for gpio in gpios %}
+{{data_prefix}} {{data_type}} {{gpio["base_address_name"]}} = {{data_macro}}({{gpio["address"]}});
+{%- endfor %}
+
+template <{{data_type}} GPIOx_BASE_ADDR>
+concept is_valid_gpio_base_address = (
+{%- for gpio in gpios %}
+    (GPIOx_BASE_ADDR == {{gpio["base_address_name"]}}){% if not loop.last %} ||{% endif %}
+{%- endfor %}
+);
+
+enum class gpio_ports : std::uint8_t {
+{%- for gpio in gpios %}
+    {{gpio["name"]|lower}}{% if not loop.last %},{% endif %}
+{%- endfor %}
+};
+
+template <gpio_ports port>
+concept is_valid_gpio_port = (
+{%- for gpio in gpios %}
+    (port == gpio_ports::{{gpio["name"]|lower}}){% if not loop.last %} ||{% endif %}
+{%- endfor %}
+);
+
+template <gpio_ports port>
+requires (is_valid_gpio_port<port>)
+consteval {{data_type}} port_to_base_address () {
+{%- for gpio in gpios %}
+    {%- if loop.first %}
+    if (port == gpio_ports::{{gpio["name"]|lower}}) { return {{gpio["base_address_name"]}}; }
+    {%- elif not loop.last %}
+    else if (port == gpio_ports::{{gpio["name"]|lower}}) { return {{gpio["base_address_name"]}}; }
+    {%- else %}
+    else { return {{gpio["base_address_name"]}}; }
+    {%- endif %}
+{%- endfor %}
+}
+
+enum class gpio_pins : std::uint8_t {
+    pin_00 = 0,
+    pin_01 = 1,
+    pin_02 = 2,
+    pin_03 = 3,
+    pin_04 = 4,
+    pin_05 = 5,
+    pin_06 = 6,
+    pin_07 = 7,
+    pin_08 = 8,
+    pin_09 = 9,
+    pin_10 = 10,
+    pin_11 = 11,
+    pin_12 = 12,
+    pin_13 = 13,
+    pin_14 = 14,
+    pin_15 = 15
+};
+
+{%- for gpio in gpios %}
+{%- for register in gpio["registers"] %}
+// {{register["description"]}}
+{%- for field in register["fields"] %}
+{{data_prefix}} {{data_type}} {{gpio["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} {{gpio["name"]}}_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
+{%- endfor %}
+{%- endfor %}
+{%- endfor %}
+
+} /* namespace hal */
