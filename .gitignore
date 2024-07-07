@@ -342,3 +342,5 @@ TSWLatexianTemp*
 
 ## CubeIde
 firmware
+
+__pycache__
