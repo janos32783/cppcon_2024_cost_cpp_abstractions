@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <concepts>
-#include "hal/register.hpp"
 
 namespace hal {
 
@@ -45,6 +44,12 @@ consteval {{data_type}} port_to_base_address () {
 {%- endfor %}
 }
 
+
+{%- set gpio = gpios[0] %}
+{%- for register in gpio["registers"] %}
+{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_OFFSET{{" " * (12 - register["name"]|length)}} = {{data_macro}}({{register["offset"]}});
+{%- endfor %}
+
 enum class gpio_pins : std::uint8_t {
     pin_00 = 0,
     pin_01 = 1,
@@ -64,13 +69,12 @@ enum class gpio_pins : std::uint8_t {
     pin_15 = 15
 };
 
-{%- for gpio in gpios %}
+{%- set gpio = gpios[0] %}
 {%- for register in gpio["registers"] %}
 // {{register["description"]}}
 {%- for field in register["fields"] %}
-{{data_prefix}} {{data_type}} {{gpio["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
-{{data_prefix}} {{data_type}} {{gpio["name"]}}_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
-{%- endfor %}
+{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
 {%- endfor %}
 {%- endfor %}
 

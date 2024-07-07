@@ -2,11 +2,11 @@ import copy
 import sys
 from util.peripheral import Peripheral
 
-def process_gpio (dictionary : dict) -> list[dict]:
+def process (dictionary : dict, name : str) -> list[dict]:
     peripherals = []
     for periperal_dict in dictionary["peripherals"]["peripheral"]:
         peripheral_name = periperal_dict["name"].upper()
-        if not "GPIO" in peripheral_name:
+        if not name in peripheral_name:
             continue
         derived_from = periperal_dict.get("@derivedFrom")
         if derived_from is not None:

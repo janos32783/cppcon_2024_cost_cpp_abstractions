@@ -1,0 +1,36 @@
+#pragma once
+
+#include <cstdint>
+#include <concepts>
+
+namespace hal {
+
+// RCC register base addresses
+{%- for rcc in rccs %}
+{{data_prefix}} {{data_type}} {{rcc["base_address_name"]}} = {{data_macro}}({{rcc["address"]}});
+{%- endfor %}
+
+template <{{data_type}} rcc_base_addr>
+concept is_valid_rcc_base_address = (
+{%- for rcc in rccs %}
+    (rcc_base_addr == {{rcc["base_address_name"]}}){% if not loop.last %} ||{% endif %}
+{%- endfor %}
+);
+
+{%- for rcc in rccs %}
+{%- for register in rcc["registers"] %}
+{{data_prefix}} {{data_type}} RCC_{{register["name"]}}_OFFSET{{" " * (12 - register["name"]|length)}} = {{data_macro}}({{register["offset"]}});
+{%- endfor %}
+{% endfor %}
+
+{%- for rcc in rccs %}
+{%- for register in rcc["registers"] %}
+// {{register["description"]}}
+{%- for field in register["fields"] %}
+{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
+{%- endfor %}
+{%- endfor %}
+{% endfor %}
+
+} /* namespace hal */
