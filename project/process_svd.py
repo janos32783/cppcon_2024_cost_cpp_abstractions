@@ -48,8 +48,8 @@ template_loader = jinja2.FileSystemLoader(searchpath="./")
 template_env = jinja2.Environment(loader=template_loader)
 
 # template files
-gpio_template = template_env.get_template("hal/gpio/constants.j2")
-rcc_template = template_env.get_template("hal/rcc/constants.j2")
+gpio_template = template_env.get_template("templates/gpio_constants.j2")
+rcc_template = template_env.get_template("templates/rcc_constants.j2")
 
 # parse the SVD file
 peripherals = process(device_dict)

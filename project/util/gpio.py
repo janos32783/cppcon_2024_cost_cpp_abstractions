@@ -13,7 +13,7 @@ def get_gpios (peripherals : list[Peripheral]) -> dict:
         if len(peripheral.name) != 5:
             print(peripheral.name + " is expected to be 5 characters long")
             sys.exit(1)
-        port_name = peripheral.name[:4].lower() + "_" + peripheral.name[4:].lower()
+        port_name = "port_" + peripheral.name[4:].lower()
         gpio["ports"].append({"name": port_name,
                               "address": peripheral.address,
                               "address_name": peripheral.get_base_address_name()})

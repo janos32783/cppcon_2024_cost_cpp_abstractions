@@ -22,29 +22,29 @@ concept is_valid_gpio_base_address = (
 );
 
 enum class gpio_ports : std::uint8_t {
-    gpio_f,
-    gpio_d,
-    gpio_c,
-    gpio_b,
-    gpio_a
+    port_f,
+    port_d,
+    port_c,
+    port_b,
+    port_a
 };
 
 template <gpio_ports port>
 concept is_valid_gpio_port = (
-    (port == gpio_ports::gpio_f) ||
-    (port == gpio_ports::gpio_d) ||
-    (port == gpio_ports::gpio_c) ||
-    (port == gpio_ports::gpio_b) ||
-    (port == gpio_ports::gpio_a)
+    (port == gpio_ports::port_f) ||
+    (port == gpio_ports::port_d) ||
+    (port == gpio_ports::port_c) ||
+    (port == gpio_ports::port_b) ||
+    (port == gpio_ports::port_a)
 );
 
 template <gpio_ports port>
 requires (is_valid_gpio_port<port>)
 consteval std::uint32_t port_to_base_address () {
-    if (port == gpio_ports::gpio_f) { return GPIOF_BASE_ADDR; }
-    else if (port == gpio_ports::gpio_d) { return GPIOD_BASE_ADDR; }
-    else if (port == gpio_ports::gpio_c) { return GPIOC_BASE_ADDR; }
-    else if (port == gpio_ports::gpio_b) { return GPIOB_BASE_ADDR; }
+    if (port == gpio_ports::port_f) { return GPIOF_BASE_ADDR; }
+    else if (port == gpio_ports::port_d) { return GPIOD_BASE_ADDR; }
+    else if (port == gpio_ports::port_c) { return GPIOC_BASE_ADDR; }
+    else if (port == gpio_ports::port_b) { return GPIOB_BASE_ADDR; }
     else { return GPIOA_BASE_ADDR; }
 }
 constexpr std::uint32_t GPIO_MODER_OFFSET        = UINT32_C(0x0);
