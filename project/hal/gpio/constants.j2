@@ -6,47 +6,45 @@
 namespace hal {
 
 // GPIO register base addresses
-{%- for gpio in gpios %}
-{{data_prefix}} {{data_type}} {{gpio["base_address_name"]}} = {{data_macro}}({{gpio["address"]}});
+{%- for port in gpios["ports"] %}
+{{data_prefix}} {{data_type}} {{port["address_name"]}} = {{data_macro}}({{port["address"]}});
 {%- endfor %}
 
-template <{{data_type}} GPIOx_BASE_ADDR>
+template <{{data_type}} gpio_base_address>
 concept is_valid_gpio_base_address = (
-{%- for gpio in gpios %}
-    (GPIOx_BASE_ADDR == {{gpio["base_address_name"]}}){% if not loop.last %} ||{% endif %}
+{%- for port in gpios["ports"] %}
+    (gpio_base_address == {{port["address_name"]}}){% if not loop.last %} ||{% endif %}
 {%- endfor %}
 );
 
 enum class gpio_ports : std::uint8_t {
-{%- for gpio in gpios %}
-    {{gpio["name"]|lower}}{% if not loop.last %},{% endif %}
+{%- for port in gpios["ports"] %}
+    {{port["name"]}}{% if not loop.last %},{% endif %}
 {%- endfor %}
 };
 
 template <gpio_ports port>
 concept is_valid_gpio_port = (
-{%- for gpio in gpios %}
-    (port == gpio_ports::{{gpio["name"]|lower}}){% if not loop.last %} ||{% endif %}
+{%- for port in gpios["ports"] %}
+    (port == gpio_ports::{{port["name"]}}){% if not loop.last %} ||{% endif %}
 {%- endfor %}
 );
 
 template <gpio_ports port>
 requires (is_valid_gpio_port<port>)
 consteval {{data_type}} port_to_base_address () {
-{%- for gpio in gpios %}
+{%- for port in gpios["ports"] %}
     {%- if loop.first %}
-    if (port == gpio_ports::{{gpio["name"]|lower}}) { return {{gpio["base_address_name"]}}; }
+    if (port == gpio_ports::{{port["name"]}}) { return {{port["address_name"]}}; }
     {%- elif not loop.last %}
-    else if (port == gpio_ports::{{gpio["name"]|lower}}) { return {{gpio["base_address_name"]}}; }
+    else if (port == gpio_ports::{{port["name"]}}) { return {{port["address_name"]}}; }
     {%- else %}
-    else { return {{gpio["base_address_name"]}}; }
+    else { return {{port["address_name"]}}; }
     {%- endif %}
 {%- endfor %}
 }
 
-
-{%- set gpio = gpios[0] %}
-{%- for register in gpio["registers"] %}
+{%- for register in gpios["registers"] %}
 {{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_OFFSET{{" " * (12 - register["name"]|length)}} = {{data_macro}}({{register["offset"]}});
 {%- endfor %}
 
@@ -69,12 +67,11 @@ enum class gpio_pins : std::uint8_t {
     pin_15 = 15
 };
 
-{%- set gpio = gpios[0] %}
-{%- for register in gpio["registers"] %}
+{%- for register in gpios["registers"] %}
 // {{register["description"]}}
 {%- for field in register["fields"] %}
-{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
-{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
+{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_MSK{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} GPIO_{{register["name"]}}_{{field["name"]}}_POS{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["offset"]}});
 {%- endfor %}
 {%- endfor %}
 

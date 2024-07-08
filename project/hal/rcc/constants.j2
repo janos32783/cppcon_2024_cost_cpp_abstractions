@@ -27,8 +27,8 @@ concept is_valid_rcc_base_address = (
 {%- for register in rcc["registers"] %}
 // {{register["description"]}}
 {%- for field in register["fields"] %}
-{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK = {{data_macro}}({{field["bitmask"]}});
-{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_POS = {{data_macro}}({{field["offset"]}});
+{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} {{rcc["name"]}}_{{register["name"]}}_{{field["name"]}}_POS{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["offset"]}});
 {%- endfor %}
 {%- endfor %}
 {% endfor %}

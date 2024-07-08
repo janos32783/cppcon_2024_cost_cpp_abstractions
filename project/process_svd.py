@@ -4,6 +4,8 @@ from os.path import exists
 import xmltodict
 import jinja2
 from util.peripherals import process
+from util.gpio import get_gpios
+from util.rcc import get_rccs
 
 if len(sys.argv) != 2:
     print("SVD filename is required as argument")
@@ -50,8 +52,9 @@ gpio_template = template_env.get_template("hal/gpio/constants.j2")
 rcc_template = template_env.get_template("hal/rcc/constants.j2")
 
 # parse the SVD file
-gpios = process(device_dict, "GPIO")
-rccs = process(device_dict, "RCC")
+peripherals = process(device_dict)
+gpios = get_gpios(peripherals)
+rccs = get_rccs(peripherals)
 
 outputText = gpio_template.render(data_prefix=data_prefix,
                                   data_type=data_type,
