@@ -1,6 +1,6 @@
 include ../../common.mk
 
-OBJS = ./Core/Src/main.o \
+OBJS = main.o \
        ./Core/Src/stm32f0xx_hal_msp.o \
        ./Core/Src/stm32f0xx_it.o \
        ./Core/Src/syscalls.o \
