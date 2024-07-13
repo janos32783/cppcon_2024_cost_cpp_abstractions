@@ -344,3 +344,7 @@ TSWLatexianTemp*
 firmware
 
 __pycache__
+
+documents/report
+
+.vscode

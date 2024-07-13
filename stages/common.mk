@@ -1,0 +1,44 @@
+# common.mk
+
+CC = arm-none-eabi-gcc
+CXX = arm-none-eabi-g++
+OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
+SIZE = arm-none-eabi-size
+STFLASH = st-flash
+
+# target processor
+CPU = -mcpu=cortex-m0
+# spec file : use the newlib-nano
+SPECS = --specs=nano.specs
+# no hardware floating point support -> use software support
+FLOAT = -mfloat-abi=soft
+# thumb instruction set
+THUMB = -mthumb
+# optimize for size
+OPTIMIZATION = -Os
+# C standard -> GNU dialect of ISO C11
+CSTD = -std=gnu11
+# C++ standard -> C++20
+CXXSTD = -std=c++20
+# place each function and data item in its own section -> help remove unused functions and data
+SECTIONS = -ffunction-sections -fdata-sections
+# enable commonly used warnings
+WARN = -Wall
+# no OS is used, bare metal programming
+LDSPECS = --specs=nosys.specs $(SPECS)
+
+ASMFLAGS = $(CPU) -c $(SPECS) $(FLOAT) $(THUMB)
+CFLAGS = $(CPU) -c $(CSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
+CXXFLAGS = $(CPU) -c $(CXXSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
+LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB)
+FLASHSTART = 0x08000000
+
+%.o : %.s
+	$(CXX) $(ASMFLAGS) $< -o $@
+
+%.o : %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@
