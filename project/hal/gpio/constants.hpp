@@ -77,6 +77,27 @@ enum class gpio_pins : std::uint8_t {
     pin_14 = 14,
     pin_15 = 15
 };
+
+template <gpio_pins pin>
+concept is_valid_gpio_pin = (
+    (pin == gpio_pins::pin_00) ||
+    (pin == gpio_pins::pin_01) ||
+    (pin == gpio_pins::pin_02) ||
+    (pin == gpio_pins::pin_03) ||
+    (pin == gpio_pins::pin_04) ||
+    (pin == gpio_pins::pin_05) ||
+    (pin == gpio_pins::pin_06) ||
+    (pin == gpio_pins::pin_07) ||
+    (pin == gpio_pins::pin_08) ||
+    (pin == gpio_pins::pin_09) ||
+    (pin == gpio_pins::pin_10) ||
+    (pin == gpio_pins::pin_11) ||
+    (pin == gpio_pins::pin_12) ||
+    (pin == gpio_pins::pin_13) ||
+    (pin == gpio_pins::pin_14) ||
+    (pin == gpio_pins::pin_15)
+);
+
 // GPIO port mode register
 constexpr std::uint32_t GPIO_MODER_MODER15_MSK    = UINT32_C(0b11000000000000000000000000000000);
 constexpr std::uint32_t GPIO_MODER_MODER15_POS    = UINT32_C(30);

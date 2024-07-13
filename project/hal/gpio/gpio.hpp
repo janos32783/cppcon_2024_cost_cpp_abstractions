@@ -25,13 +25,22 @@ public:
     }
 
     void set () const {
-        CBSRRegister<port> bsrr_register {};
+        CBitSetResetRegister<port> bsrr_register {};
         bsrr_register.template set_pin<pin>();
     }
 
     void reset () const {
-        CBSRRegister<port> bsrr_register {};
+        CBitSetResetRegister<port> bsrr_register {};
         bsrr_register.template reset_pin<pin>();
+    }
+
+    void write (bool level) {
+        if (level) {
+            set();
+        }
+        else {
+            reset();
+        }
     }
 };
 
