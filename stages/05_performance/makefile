@@ -1,4 +1,4 @@
-include ../../common.mk
+include ../common.mk
 
 OBJS = main.o \
        ./Core/Src/stm32f0xx_hal_msp.o \
@@ -30,13 +30,14 @@ LINKER_SCRIPT = STM32F030CCTX_FLASH.ld
 ELF = main.elf
 BIN = main.bin
 
-CFLAGS += -ICore/Inc \
-          -IDrivers/CMSIS/Include \
-          -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
-          -IDrivers/STM32F0xx_HAL_Driver/Inc \
-          -DUSE_HAL_DRIVER -DSTM32F030xC
-CXXFLAGS = $(CFLAGS)
-CXX = $(CC)
+CXXFLAGS += -ICore/Inc \
+            -IDrivers/CMSIS/Include \
+            -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
+            -IDrivers/STM32F0xx_HAL_Driver/Inc \
+            -DUSE_HAL_DRIVER -DSTM32F030xC \
+            -fno-exceptions
+CFLAGS = $(CXXFLAGS)
+CC = $(CXX)
 
 all: prog
 
