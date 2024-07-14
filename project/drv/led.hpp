@@ -4,7 +4,7 @@
 
 namespace drv {
 
-template <intf::GPIO TGpio>
+template <intf::gpio::IPin TGpio>
 class CLed {
 private:
     bool m_state { false };

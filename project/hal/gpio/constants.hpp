@@ -4,6 +4,7 @@
 #include <concepts>
 
 namespace hal {
+namespace gpio {
 
 // GPIO register base addresses
 constexpr std::uint32_t GPIOF_BASE_ADDR = UINT32_C(0x48001400);
@@ -12,16 +13,16 @@ constexpr std::uint32_t GPIOC_BASE_ADDR = UINT32_C(0x48000800);
 constexpr std::uint32_t GPIOB_BASE_ADDR = UINT32_C(0x48000400);
 constexpr std::uint32_t GPIOA_BASE_ADDR = UINT32_C(0x48000000);
 
-template <std::uint32_t gpio_base_address>
-concept is_valid_gpio_base_address = (
-    (gpio_base_address == GPIOF_BASE_ADDR) ||
-    (gpio_base_address == GPIOD_BASE_ADDR) ||
-    (gpio_base_address == GPIOC_BASE_ADDR) ||
-    (gpio_base_address == GPIOB_BASE_ADDR) ||
-    (gpio_base_address == GPIOA_BASE_ADDR)
+template <std::uint32_t base_address>
+concept is_valid_base_address = (
+    (base_address == GPIOF_BASE_ADDR) ||
+    (base_address == GPIOD_BASE_ADDR) ||
+    (base_address == GPIOC_BASE_ADDR) ||
+    (base_address == GPIOB_BASE_ADDR) ||
+    (base_address == GPIOA_BASE_ADDR)
 );
 
-enum class gpio_ports : std::uint8_t {
+enum class ports : std::uint8_t {
     port_f,
     port_d,
     port_c,
@@ -29,22 +30,22 @@ enum class gpio_ports : std::uint8_t {
     port_a
 };
 
-template <gpio_ports port>
-concept is_valid_gpio_port = (
-    (port == gpio_ports::port_f) ||
-    (port == gpio_ports::port_d) ||
-    (port == gpio_ports::port_c) ||
-    (port == gpio_ports::port_b) ||
-    (port == gpio_ports::port_a)
+template <ports port>
+concept is_valid_port = (
+    (port == ports::port_f) ||
+    (port == ports::port_d) ||
+    (port == ports::port_c) ||
+    (port == ports::port_b) ||
+    (port == ports::port_a)
 );
 
-template <gpio_ports port>
-requires (is_valid_gpio_port<port>)
+template <ports port>
+requires (is_valid_port<port>)
 consteval std::uint32_t port_to_base_address () {
-    if (port == gpio_ports::port_f) { return GPIOF_BASE_ADDR; }
-    else if (port == gpio_ports::port_d) { return GPIOD_BASE_ADDR; }
-    else if (port == gpio_ports::port_c) { return GPIOC_BASE_ADDR; }
-    else if (port == gpio_ports::port_b) { return GPIOB_BASE_ADDR; }
+    if (port == ports::port_f) { return GPIOF_BASE_ADDR; }
+    else if (port == ports::port_d) { return GPIOD_BASE_ADDR; }
+    else if (port == ports::port_c) { return GPIOC_BASE_ADDR; }
+    else if (port == ports::port_b) { return GPIOB_BASE_ADDR; }
     else { return GPIOA_BASE_ADDR; }
 }
 constexpr std::uint32_t GPIO_MODER_OFFSET        = UINT32_C(0x0);
@@ -59,7 +60,7 @@ constexpr std::uint32_t GPIO_AFRL_OFFSET         = UINT32_C(0x20);
 constexpr std::uint32_t GPIO_AFRH_OFFSET         = UINT32_C(0x24);
 constexpr std::uint32_t GPIO_BRR_OFFSET          = UINT32_C(0x28);
 
-enum class gpio_pins : std::uint8_t {
+enum class pins : std::uint8_t {
     pin_00 = 0,
     pin_01 = 1,
     pin_02 = 2,
@@ -78,26 +79,49 @@ enum class gpio_pins : std::uint8_t {
     pin_15 = 15
 };
 
-template <gpio_pins pin>
-concept is_valid_gpio_pin = (
-    (pin == gpio_pins::pin_00) ||
-    (pin == gpio_pins::pin_01) ||
-    (pin == gpio_pins::pin_02) ||
-    (pin == gpio_pins::pin_03) ||
-    (pin == gpio_pins::pin_04) ||
-    (pin == gpio_pins::pin_05) ||
-    (pin == gpio_pins::pin_06) ||
-    (pin == gpio_pins::pin_07) ||
-    (pin == gpio_pins::pin_08) ||
-    (pin == gpio_pins::pin_09) ||
-    (pin == gpio_pins::pin_10) ||
-    (pin == gpio_pins::pin_11) ||
-    (pin == gpio_pins::pin_12) ||
-    (pin == gpio_pins::pin_13) ||
-    (pin == gpio_pins::pin_14) ||
-    (pin == gpio_pins::pin_15)
+template <pins pin>
+concept is_valid_pin = (
+    (pin == pins::pin_00) ||
+    (pin == pins::pin_01) ||
+    (pin == pins::pin_02) ||
+    (pin == pins::pin_03) ||
+    (pin == pins::pin_04) ||
+    (pin == pins::pin_05) ||
+    (pin == pins::pin_06) ||
+    (pin == pins::pin_07) ||
+    (pin == pins::pin_08) ||
+    (pin == pins::pin_09) ||
+    (pin == pins::pin_10) ||
+    (pin == pins::pin_11) ||
+    (pin == pins::pin_12) ||
+    (pin == pins::pin_13) ||
+    (pin == pins::pin_14) ||
+    (pin == pins::pin_15)
 );
 
+template <pins pin>
+concept is_valid_low_pin = (
+    (pin == pins::pin_00) ||
+    (pin == pins::pin_01) ||
+    (pin == pins::pin_02) ||
+    (pin == pins::pin_03) ||
+    (pin == pins::pin_04) ||
+    (pin == pins::pin_05) ||
+    (pin == pins::pin_06) ||
+    (pin == pins::pin_07)
+);
+
+template <pins pin>
+concept is_valid_high_pin = (
+    (pin == pins::pin_08) ||
+    (pin == pins::pin_09) ||
+    (pin == pins::pin_10) ||
+    (pin == pins::pin_11) ||
+    (pin == pins::pin_12) ||
+    (pin == pins::pin_13) ||
+    (pin == pins::pin_14) ||
+    (pin == pins::pin_15)
+);
 // GPIO port mode register
 constexpr std::uint32_t GPIO_MODER_MODER15_MSK    = UINT32_C(0b11000000000000000000000000000000);
 constexpr std::uint32_t GPIO_MODER_MODER15_POS    = UINT32_C(30);
@@ -464,4 +488,5 @@ constexpr std::uint32_t GPIO_BRR_BR14_POS       = UINT32_C(14);
 constexpr std::uint32_t GPIO_BRR_BR15_MSK       = UINT32_C(0b00000000000000001000000000000000);
 constexpr std::uint32_t GPIO_BRR_BR15_POS       = UINT32_C(15);
 
+} /* namespace gpio */
 } /* namespace hal */

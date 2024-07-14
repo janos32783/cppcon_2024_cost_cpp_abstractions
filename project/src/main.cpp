@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include "hal/flash/flash.hpp"
 #include "hal/gpio/gpio.hpp"
 #include "drv/led.hpp"
 
@@ -8,11 +9,12 @@ void delay (int cycles) {
     for (i = 0; i < cycles;) { i = i + 1; }
 }
 
-using namespace hal;
-
 int main (void) {
+    hal::flash::CFlash flash;
+    flash.enable_prefetch();
 
-    CGpio<hal::gpio_ports::port_c, hal::gpio_pins::pin_13, hal::gpio_modes::output> gpio {};
+
+    hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13, hal::gpio::modes::output> gpio {};
 
     drv::CLed<decltype(gpio)> led { &gpio };
 

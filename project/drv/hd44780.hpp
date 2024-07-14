@@ -17,7 +17,7 @@ namespace drv {
  *  +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 */
 
-template <intf::GPIO TGpio, intf::Delay TDelay>
+template <intf::gpio::IPin TGpio, intf::Delay TDelay>
 class CHd44780 {
 private:
     TGpio* m_pwr { nullptr };   /* pin to control whether the LCD is powered on or now (can be null) */

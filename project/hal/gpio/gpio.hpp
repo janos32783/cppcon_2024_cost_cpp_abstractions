@@ -7,15 +7,16 @@
 #include "hal/rcc/registers.hpp"
 
 namespace hal {
+namespace gpio {
 
-template <gpio_ports port,
-          gpio_pins pin,
-          gpio_modes mode>
-class CGpio {
+template <ports port,
+          pins pin,
+          modes mode>
+class CPin {
 public:
     bool configure () const {
         CModeRegister<port> mode_register {};
-        CAhbEnRegister ahb_en_register {};
+        rcc::CAhbEnRegister ahb_en_register {};
 
         ahb_en_register.enable_gpio_clock<port>();
         mode_register.template set_mode<pin, mode>();
@@ -34,7 +35,7 @@ public:
         bsrr_register.template reset_pin<pin>();
     }
 
-    void write (bool level) {
+    void write (bool level) const {
         if (level) {
             set();
         }
@@ -44,4 +45,5 @@ public:
     }
 };
 
+} /* namespace gpio */
 } /* namespace hal */

@@ -4,12 +4,13 @@
 #include <concepts>
 
 namespace hal {
+namespace rcc {
 
 // RCC register base addresses
 constexpr std::uint32_t RCC_BASE_ADDR = UINT32_C(0x40021000);
 
 template <std::uint32_t rcc_base_addr>
-concept is_valid_rcc_base_address = (
+concept is_valid_base_address = (
     (rcc_base_addr == RCC_BASE_ADDR)
 );
 constexpr std::uint32_t RCC_CR_OFFSET           = UINT32_C(0x0);
@@ -313,4 +314,5 @@ constexpr std::uint32_t RCC_CR2_HSI48CAL_MSK   = UINT32_C(0b00000001000000000000
 constexpr std::uint32_t RCC_CR2_HSI48CAL_POS   = UINT32_C(24);
 
 
+} /* namespace rcc */
 } /* namespace hal */
