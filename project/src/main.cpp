@@ -10,8 +10,7 @@ void delay (int cycles) {
 }
 
 int main (void) {
-    hal::flash::CFlash flash;
-    flash.enable_prefetch();
+    hal::flash::CFlash::enable_prefetch();
 
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13, hal::gpio::modes::output> gpio {};

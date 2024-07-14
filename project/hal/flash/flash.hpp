@@ -10,7 +10,7 @@ namespace flash {
 
 class CFlash {
 public:
-    void enable_prefetch () const {
+    static void enable_prefetch () {
         CAccessControlRegister acr {};
         acr.enable_prefetch();
     }
