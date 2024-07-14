@@ -2,11 +2,13 @@
 
 ADC_HandleTypeDef hadc;
 TIM_HandleTypeDef htim3;
+UART_HandleTypeDef huart2;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_USART2_UART_Init(void);
 
 GPIO_TypeDef* ports [8] = { GPIOB, GPIOB, GPIOB, GPIOB, GPIOB, GPIOA, GPIOA, GPIOA };
 uint16_t pins [8] = { GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_4 };
@@ -38,6 +40,7 @@ int main(void)
     MX_GPIO_Init();
     MX_ADC_Init();
     MX_TIM3_Init();
+    MX_USART2_UART_Init();
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     while (1)
@@ -156,6 +159,24 @@ static void MX_TIM3_Init(void)
         Error_Handler();
     }
     HAL_TIM_MspPostInit(&htim3);
+}
+
+static void MX_USART2_UART_Init(void)
+{
+    huart2.Instance = USART2;
+    huart2.Init.BaudRate = 115200;
+    huart2.Init.WordLength = UART_WORDLENGTH_8B;
+    huart2.Init.StopBits = UART_STOPBITS_1;
+    huart2.Init.Parity = UART_PARITY_NONE;
+    huart2.Init.Mode = UART_MODE_TX_RX;
+    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+    huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&huart2) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 static void MX_GPIO_Init(void)

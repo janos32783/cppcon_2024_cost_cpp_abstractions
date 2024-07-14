@@ -23,16 +23,18 @@ OBJS = main.o \
        ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.o \
        ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.o \
        ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.o \
-       ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o
+       ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o \
+       ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.o \
+       ./Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.o
 LINKER_SCRIPT = ../../linker_script.ld
 ELF = main.elf
 BIN = main.bin
 
 CFLAGS += -ICore/Inc \
           -IDrivers/CMSIS/Include \
-		  -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
+          -IDrivers/CMSIS/Device/ST/STM32F0xx/Include \
           -IDrivers/STM32F0xx_HAL_Driver/Inc \
-		  -DUSE_HAL_DRIVER -DSTM32F030xC
+          -DUSE_HAL_DRIVER -DSTM32F030xC
 
 all: prog
 
