@@ -10,10 +10,11 @@ namespace flash {
 
 class CFlash {
 private:
-    FLASH_TypeDef* m_flash { reinterpret_cast<FLASH_TypeDef*>(FLASH_R_BASE) };
+    static constexpr std::uint32_t m_address = FLASH_R_BASE;
+    using m_reg_t = FLASH_TypeDef;
 public:
-    void enable_prefetch () {
-        CRegister::set_bits(&m_flash->ACR, FLASH_ACR_PRFTBE_Msk);
+    static inline void enable_prefetch () {
+        CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->ACR, FLASH_ACR_PRFTBE_Msk);
     }
 };
 
