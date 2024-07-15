@@ -43,10 +43,7 @@ public:
         // period of N -> use a reload value of N-1
         static_assert((ticks - 1) <= SysTick_LOAD_RELOAD_Msk, "impossible reload value");
         // init
-        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->LOAD, ticks - 1, SysTick_LOAD_RELOAD_Msk);
-        __NVIC_SetPriority(SysTick_IRQn, config.prio);
-        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->VAL, 0, SysTick_VAL_CURRENT_Msk);
-        CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CTRL, SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk);
+        SysTick_Config(ticks);
     }
 };
 
