@@ -1,0 +1,43 @@
+#pragma once
+
+#include <cstdint>
+#include <concepts>
+
+namespace hal {
+namespace systick {
+
+enum class tick_frequencies : std::uint32_t {
+    freq_10Hz = 100,
+    freq_100Hz = 10,
+    freq_1kHz = 1
+};
+
+template <tick_frequencies freq>
+concept is_valid_frequency = (
+    (freq == tick_frequencies::freq_10Hz)  ||
+    (freq == tick_frequencies::freq_100Hz) ||
+    (freq == tick_frequencies::freq_1kHz)
+);
+
+// SysTick register base addresses
+{{data_prefix}} {{data_type}} {{systick["base_address_name"]}} = {{data_macro}}({{systick["address"]}});
+
+template <{{data_type}} base_addr>
+concept is_valid_base_address = (
+    base_addr == {{systick["base_address_name"]}}
+);
+
+{%- for register in systick["registers"] %}
+{{data_prefix}} {{data_type}} STK_{{register["name"]}}_OFFSET{{" " * (12 - register["name"]|length)}} = {{data_macro}}({{register["offset"]}});
+{%- endfor %}
+
+{%- for register in systick["registers"] %}
+// {{register["description"]}}
+{%- for field in register["fields"] %}
+{{data_prefix}} {{data_type}} {{systick["name"]}}_{{register["name"]}}_{{field["name"]}}_MSK{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["bitmask"]}});
+{{data_prefix}} {{data_type}} {{systick["name"]}}_{{register["name"]}}_{{field["name"]}}_POS{{" " * (10 - field["name"]|length)}} = {{data_macro}}({{field["offset"]}});
+{%- endfor %}
+{%- endfor %}
+
+} /* namespace systick */
+} /* namespace hal */
