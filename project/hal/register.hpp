@@ -4,38 +4,37 @@
 
 namespace hal {
 
-template <std::uint32_t address>
 class CRegister {
 public:
-    inline void set (std::uint32_t value) const {
-        *(reinterpret_cast<volatile std::uint32_t *>(address)) = value;
+    static inline void set (volatile std::uint32_t* reg, std::uint32_t value) {
+        *reg = value;
     }
 
-    inline std::uint32_t get () const {
-        return *(reinterpret_cast<volatile std::uint32_t *>(address));
+    static inline std::uint32_t get (volatile std::uint32_t* reg) {
+        return *reg;
     }
 
-    inline void set (std::uint32_t value, std::uint32_t bitmask) const {
-        std::uint32_t tmp = get();
+    static inline void set (volatile std::uint32_t* reg, std::uint32_t value, std::uint32_t bitmask) {
+        std::uint32_t tmp = *reg;
         tmp &= ~bitmask;
         tmp |= value;
-        set(tmp);
+        *reg = tmp;
     }
 
-    inline void set_bits (std::uint32_t bitmask) const {
-        *(reinterpret_cast<volatile std::uint32_t *>(address)) = *(reinterpret_cast<volatile std::uint32_t *>(address)) | bitmask;
+    static inline void set_bits (volatile std::uint32_t* reg, std::uint32_t bitmask) {
+        *reg = *reg | bitmask;
     }
 
-    inline void clear_bits (std::uint32_t bitmask) const {
-        *(reinterpret_cast<volatile std::uint32_t *>(address)) = *(reinterpret_cast<volatile std::uint32_t *>(address)) & ~bitmask;
+    static inline void clear_bits (volatile std::uint32_t* reg, std::uint32_t bitmask) {
+        *reg = *reg & ~bitmask;
     }
 
-    inline bool is_set (std::uint32_t bitmask) const {
-        return static_cast<bool>(*(reinterpret_cast<volatile std::uint32_t *>(address)) & bitmask);
+    static inline bool is_set (volatile std::uint32_t* reg, std::uint32_t bitmask) {
+        return static_cast<bool>(*reg & bitmask);
     }
 
-    inline std::uint32_t get_bits (std::uint32_t bitmask) const {
-        return *(reinterpret_cast<volatile std::uint32_t *>(address)) & bitmask;
+    static inline std::uint32_t get_bits (volatile std::uint32_t* reg, std::uint32_t bitmask) {
+        return *reg & bitmask;
     }
 };
 

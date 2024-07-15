@@ -7,7 +7,7 @@ namespace gpio {
 
 template <typename T>
 concept IPin = requires (T pin, bool level) {
-    { pin.configure() } -> std::same_as<bool>;
+    //{ pin.configure() } -> std::same_as<bool>;
     { pin.set() } -> std::same_as<void>;
     { pin.reset() } -> std::same_as<void>;
     { pin.write(level) } -> std::same_as<void>;

@@ -2,17 +2,18 @@
 
 #include <cstdint>
 
-#include "hal/flash/constants.hpp"
-#include "hal/flash/registers.hpp"
+#include "hal/register.hpp"
+#include "hal/CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h"
 
 namespace hal {
 namespace flash {
 
 class CFlash {
+private:
+    FLASH_TypeDef* m_flash { reinterpret_cast<FLASH_TypeDef*>(FLASH_R_BASE) };
 public:
-    static void enable_prefetch () {
-        CAccessControlRegister acr {};
-        acr.enable_prefetch();
+    void enable_prefetch () {
+        CRegister::set_bits(&m_flash->ACR, FLASH_ACR_PRFTBE_Msk);
     }
 };
 

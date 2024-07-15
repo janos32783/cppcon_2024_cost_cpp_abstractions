@@ -12,7 +12,7 @@ private:
 public:
     CLed () = delete;
     CLed (TGpio* gpio) : m_gpio(gpio) {
-        m_gpio->configure();
+        //m_gpio->configure();
     }
 
     void turn_on () {
