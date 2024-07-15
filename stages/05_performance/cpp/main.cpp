@@ -53,6 +53,8 @@ int main(void)
         __HAL_TIM_SET_COUNTER(&htim1, 0);
         HAL_TIM_Base_Start(&htim1);
 
+        // hal::adc::CAdc adc1;
+
         ADC1->CHSELR = 0b0000000001000000;
         select_adc_channel(ADC_CHANNEL_6);
         HAL_ADC_Start(&hadc);

@@ -1,6 +1,6 @@
 STARTUP_FILE = startup
 MAIN = main
-INCLUDES = -I. -I..
+INCLUDES = -I. -I.. -I../hal/CMSIS/Device/ST/STM32F0xx/Include -I../hal/CMSIS/Include
 
 all: prog
 

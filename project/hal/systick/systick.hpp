@@ -4,6 +4,7 @@
 
 #include "hal/systick/constants.hpp"
 #include "hal/systick/registers.hpp"
+#include "hal/CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h"
 
 namespace hal {
 namespace systick {
@@ -30,7 +31,7 @@ void init () {
     CCurrentValueRegister stk_cvr {};
     // init
     stk_rvr.set_reload_value(ticks - 1);
-    // nvic : TODO
+    __NVIC_SetPriority(SysTick_IRQn, config.prio);
     stk_cvr.set_current_value(0);
     stk_csr.set_bits(STK_CSR_CLKSOURCE_MSK | STK_CSR_TICKINT_MSK | STK_CSR_ENABLE_MSK);
 }
