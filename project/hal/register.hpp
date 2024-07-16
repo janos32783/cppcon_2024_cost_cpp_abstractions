@@ -30,7 +30,11 @@ public:
     }
 
     static inline bool is_set (volatile std::uint32_t* reg, std::uint32_t bitmask) {
-        return static_cast<bool>(*reg & bitmask);
+        return (*reg & bitmask) == bitmask;
+    }
+
+    static inline bool is_cleared (volatile std::uint32_t* reg, std::uint32_t bitmask) {
+        return (*reg & bitmask) == 0;
     }
 
     static inline std::uint32_t get_bits (volatile std::uint32_t* reg, std::uint32_t bitmask) {

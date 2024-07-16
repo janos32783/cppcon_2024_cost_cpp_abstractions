@@ -7,9 +7,16 @@
 namespace hal {
 namespace rcc {
 
+constexpr std::chrono::milliseconds RCC_DBP_TIMEOUT_VALUE { 100 };
 constexpr std::chrono::milliseconds HSE_TIMEOUT_VALUE { 100 };
+constexpr std::chrono::milliseconds HSI_TIMEOUT_VALUE { 2 };
+constexpr std::chrono::milliseconds LSI_TIMEOUT_VALUE { 2 };
+constexpr std::chrono::milliseconds PLL_TIMEOUT_VALUE { 2 };
+constexpr std::chrono::milliseconds HSI14_TIMEOUT_VALUE { 2 };
+constexpr std::chrono::milliseconds LSE_STARTUP_TIMEOUT { 5000 };
 
 constexpr std::uint32_t RCC_PLLSOURCE_HSE = RCC_CFGR_PLLSRC_HSE_PREDIV;
+constexpr std::uint32_t RCC_PLLSOURCE_HSI = RCC_CFGR_PLLSRC_HSI_PREDIV;
 
 template <std::uint32_t calib>
 concept is_valid_calibration_value = (
