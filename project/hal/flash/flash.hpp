@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cstdint>
-
 #include "hal/register.hpp"
-#include "hal/CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h"
+#include "hal/common.hpp"
 
 namespace hal {
 namespace flash {

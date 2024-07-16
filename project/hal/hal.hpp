@@ -1,17 +1,23 @@
 #pragma once
 
-#include <cstdint>
-
-#include "hal/systick/constants.hpp"
+#include "hal/common.hpp"
+#include "hal/flash/flash.hpp"
+#include "hal/rcc/rcc.hpp"
+#include "hal/systick/systick.hpp"
+#include "hal/gpio/gpio.hpp"
 
 namespace hal {
 
-consteval calculate_ticks
-
-template <uint32_t prio, uint32_t core_clock_freq, tick_frequencies systick_freq>
-requires (is_valid_frequency<systick_freq>)
-void init () {
-
+template <systick::SystickConfig config>
+static inline void init () {
+    hal::flash::CFlash::enable_prefetch();
+    hal::systick::CSysTick::init<config>();
+    hal::rcc::CRcc::enable_syscfg_clock();
+    hal::rcc::CRcc::enable_pwr_clock();
+    NVIC_SetPriority(SVC_IRQn, 1);
+    NVIC_SetPriority(PendSV_IRQn, 1);
 }
+
+
 
 } /* namespace hal */

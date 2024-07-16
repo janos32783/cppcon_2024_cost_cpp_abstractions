@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cstdint>
-
 #include "hal/register.hpp"
-#include "hal/gpio/gpio.hpp"
-#include "hal/CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h"
+#include "hal/rcc/constants.hpp"
+#include "hal/gpio/constants.hpp"
+#include "hal/common.hpp"
 
 namespace hal {
 namespace rcc {
@@ -15,6 +14,10 @@ private:
     using m_reg_t = RCC_TypeDef;
     static inline void delay () {
         __asm("NOP");
+    }
+
+    static inline bool is_hse_ready () {
+        return CRegister::is_set(&reinterpret_cast<m_reg_t*>(m_address)->CR, RCC_CR_HSERDY_Msk);
     }
 public:
     template<gpio::ports port>
@@ -39,6 +42,65 @@ public:
         CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->APB1ENR, RCC_APB1ENR_PWREN);
         // delay after an RCC peripheral clock enabling
         delay();
+    }
+
+    template<OscInitConfig osc_conf>
+    requires (is_valid_osc_init_conf<osc_conf>)
+    static inline hal_error configure_oscillator () {
+        if constexpr (osc_conf.oscillator_type == oscillator_types::hse) {
+            std::uint32_t sysclk_source = CRegister::get_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_SWS);
+            std::uint32_t pll_source = CRegister::get_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_PLLSRC);
+            if ((sysclk_source == RCC_CFGR_SWS_HSE) || ((sysclk_source == RCC_CFGR_SWS_PLL) && (pll_source == RCC_PLLSOURCE_HSE))) {
+                if (!is_hse_ready() && (osc_conf.hse_state == hse_states::off))
+                {
+                    return hal_error::error;
+                }
+            }
+            else {
+                /* Check the HSE State */
+                if(RCC_OscInitStruct->HSEState != RCC_HSE_OFF)
+                {
+                    /* Get Start Tick */
+                    tickstart = HAL_GetTick();
+                    
+                    /* Wait till HSE is ready */
+                    while(__HAL_RCC_GET_FLAG(RCC_FLAG_HSERDY) == RESET)
+                    {
+                        if((HAL_GetTick() - tickstart ) > HSE_TIMEOUT_VALUE)
+                        {
+                            return HAL_TIMEOUT;
+                        }
+                    }
+                }
+                else
+                {
+                    /* Get Start Tick */
+                    tickstart = HAL_GetTick();
+                    
+                    /* Wait till HSE is disabled */
+                    while(__HAL_RCC_GET_FLAG(RCC_FLAG_HSERDY) != RESET)
+                    {
+                        if((HAL_GetTick() - tickstart ) > HSE_TIMEOUT_VALUE)
+                        {
+                            return HAL_TIMEOUT;
+                        }
+                    }
+                }
+            }
+        }
+        if constexpr (osc_conf.oscillator_type == oscillator_types::hsi) {
+
+        }
+        if constexpr (osc_conf.oscillator_type == oscillator_types::lsi) {
+
+        }
+        if constexpr (osc_conf.oscillator_type == oscillator_types::lse) {
+
+        }
+        if constexpr (osc_conf.oscillator_type == oscillator_types::hsi14) {
+
+        }
+        // PLL
     }
 };
 

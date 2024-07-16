@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cstdint>
-
 #include "hal/register.hpp"
-#include "hal/CMSIS/Device/ST/STM32F0xx/Include/stm32f030xc.h"
+#include "hal/common.hpp"
 
 namespace hal {
 namespace systick {
@@ -19,11 +17,6 @@ concept is_valid_frequency = (
     (freq == tick_frequencies::freq_10Hz)  ||
     (freq == tick_frequencies::freq_100Hz) ||
     (freq == tick_frequencies::freq_1kHz)
-);
-
-template <uint32_t prio>
-concept is_preemptive_prio = (
-    prio < 0x4
 );
 
 struct SystickConfig {
