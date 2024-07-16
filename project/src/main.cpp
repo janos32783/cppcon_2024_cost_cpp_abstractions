@@ -17,7 +17,12 @@ constexpr hal::rcc::OscInitConfig oscillator_config {
     .hsi14_state = hal::rcc::hsi14_states::on,
     .hsi14_calib_value = 16,
     .lsi_state = hal::rcc::lsi_states::noconf,
-    .pll = {}
+    .pll = {
+        .pll_state = hal::rcc::pll_states::noconf,
+        .pll_source = hal::rcc::pll_sources::hsi,
+        .pll_mul = hal::rcc::pll_mul_factors::mul2,
+        .pll_div = hal::rcc::pll_predic_factors::div1
+    }
 };
 
 void delay (int cycles) {
