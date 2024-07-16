@@ -19,9 +19,12 @@ void delay (int cycles) {
 
 int main (void) {
     hal::flash::CFlash::enable_prefetch();
-    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
     hal::systick::CSysTick::init<systick_config>();
+    hal::rcc::CRcc::enable_syscfg_clock();
+    hal::rcc::CRcc::enable_pwr_clock();
 
+
+    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
     gpio.configure<hal::gpio::modes::output>();

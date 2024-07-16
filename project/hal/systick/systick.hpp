@@ -21,6 +21,11 @@ concept is_valid_frequency = (
     (freq == tick_frequencies::freq_1kHz)
 );
 
+template <uint32_t prio>
+concept is_preemptive_prio = (
+    prio < 0x4
+);
+
 struct SystickConfig {
     uint32_t prio { 0 };
     uint32_t core_clock_freq { 8000000 };
@@ -37,13 +42,15 @@ private:
     }
 public:
     template <SystickConfig config>
-    requires (is_valid_frequency<config.systick_freq>)
+    requires (is_valid_frequency<config.systick_freq> && is_preemptive_prio<config.prio>)
     static inline void init () {
         constexpr std::uint32_t ticks = calculate_ticks(config.core_clock_freq, config.systick_freq);
         // period of N -> use a reload value of N-1
         static_assert((ticks - 1) <= SysTick_LOAD_RELOAD_Msk, "impossible reload value");
-        // init
         SysTick_Config(ticks);
+
+        static_assert(config.prio < (1UL << __NVIC_PRIO_BITS), "invalid systick priority");
+        NVIC_SetPriority(SysTick_IRQn, config.prio);
     }
 };
 
