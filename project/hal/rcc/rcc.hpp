@@ -29,6 +29,9 @@ private:
     static inline bool is_lse_ready () {
         return CRegister::is_set(&reinterpret_cast<m_reg_t*>(m_address)->BDCR, RCC_BDCR_LSERDY);
     }
+    static inline bool is_hsi14_ready () {
+        return CRegister::is_set(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14RDY);
+    }
     static inline std::uint32_t get_sysclk_source () {
         return CRegister::get_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_SWS);
     }
@@ -38,6 +41,10 @@ private:
     template <std::uint32_t calib>
     static inline void calibrate_hsi () {
         CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CR, calib << RCC_CR_HSITRIM_Pos, RCC_CR_HSITRIM);
+    }
+    template <std::uint32_t calib>
+    static inline void calibrate_hsi14 () {
+        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CR2, calib << RCC_CR2_HSI14TRIM_Pos, RCC_CR2_HSI14TRIM);
     }
 public:
     template<gpio::ports port>
@@ -215,9 +222,33 @@ public:
             }
         }
         if constexpr (osc_conf.hsi14_state != hsi14_states::noconf) {
-
+            if constexpr (osc_conf.hsi14_state == hsi14_states::on) {
+                CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14DIS);
+                CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14ON);
+                auto tickstart = systick::CSysTick::now();
+                while (!is_hsi14_ready()) {
+                    if ((systick::CSysTick::now() - tickstart) > HSI14_TIMEOUT_VALUE) {
+                        return hal_error::timeout;
+                    }
+                }
+                calibrate_hsi14<osc_conf.hsi14_calib_value>();
+            }
+            else if constexpr (osc_conf.hsi14_state == hsi14_states::adc_control) {
+                CRegister::clear_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14DIS);
+                calibrate_hsi14<osc_conf.hsi14_calib_value>();
+            }
+            else
+            {
+                CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14DIS);
+                CRegister::clear_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14ON);
+                auto tickstart = systick::CSysTick::now();
+                while (is_hsi14_ready()) {
+                    if ((systick::CSysTick::now() - tickstart) > HSI14_TIMEOUT_VALUE) {
+                        return hal_error::timeout;
+                    }
+                }
+            }
         }
-        // PLL
         return hal_error::ok;
     }
 };
