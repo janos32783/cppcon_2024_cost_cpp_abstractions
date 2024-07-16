@@ -18,6 +18,13 @@ static inline void init () {
     NVIC_SetPriority(PendSV_IRQn, 1);
 }
 
+template <rcc::OscInitConfig osc_conf>
+static inline void configure_system_clock () {
+    if (rcc::CRcc::configure_oscillator<osc_conf>() != hal_error::ok) {
+        // TODO
+    }
+}
+
 
 
 } /* namespace hal */

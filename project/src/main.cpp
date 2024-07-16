@@ -9,6 +9,17 @@ constexpr hal::systick::SystickConfig systick_config {
     .systick_freq = hal::systick::tick_frequencies::freq_1kHz
 };
 
+constexpr hal::rcc::OscInitConfig oscillator_config {
+    .hse_state = hal::rcc::hse_states::on,
+    .lse_state = hal::rcc::lse_states::noconf,
+    .hsi_state = hal::rcc::hsi_states::noconf,
+    .hsi_calib_value = hal::rcc::hsi_calibration_default,
+    .hsi14_state = hal::rcc::hsi14_states::on,
+    .hsi14_calib_value = 16,
+    .lsi_state = hal::rcc::lsi_states::noconf,
+    .pll = {}
+};
+
 void delay (int cycles) {
     volatile int i;
     for (i = 0; i < cycles;) { i = i + 1; }
@@ -16,6 +27,7 @@ void delay (int cycles) {
 
 int main (void) {
     hal::init<systick_config>();
+    hal::configure_system_clock<oscillator_config>();
 
 
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
