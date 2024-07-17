@@ -3,6 +3,7 @@
 #include "hal/register.hpp"
 #include "hal/rcc/constants.hpp"
 #include "hal/gpio/constants.hpp"
+#include "hal/flash/flash.hpp"
 #include "hal/systick/systick.hpp"
 #include "hal/common.hpp"
 
@@ -80,7 +81,73 @@ public:
         delay();
     }
 
-    template<OscInitConfig osc_conf>
+    template <ClkInitConfig conf, std::uint32_t flash_latency>
+    requires (is_valid_clk_init_conf<conf> && flash::is_valid_flash_latency<flash_latency>)
+    static inline hal_error configure_clock () {
+        if (flash_latency > flash::CFlash::get_latency()) {
+            flash::CFlash::set_latency<flash_latency>();
+            if (flash::CFlash::get_latency() != flash_latency) {
+                return hal_error::error;
+            }
+        }
+        if constexpr (conf.is_hclk) {
+            if constexpr (conf.is_pclk1) {
+                CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, static_cast<std::uint32_t>(hclk_dividers::div16), RCC_CFGR_PPRE);
+            }
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, static_cast<std::uint32_t>(conf.ahb_clk_div), RCC_CFGR_HPRE);
+        }
+        if constexpr (conf.is_sysclk) {
+            std::uint32_t bitmask = 0;
+            std::uint32_t expected = 0;
+            if constexpr (conf.system_clock_source == system_clock_sources::hse) {
+                if (!is_hse_ready()) {
+                    return hal_error::error;
+                }
+                bitmask = RCC_CFGR_SW_HSE;
+                expected = RCC_CFGR_SWS_HSE;
+            }
+            else if constexpr (conf.system_clock_source == system_clock_sources::pll) {
+                if (!is_pll_ready()) {
+                    return hal_error::error;
+                }
+                bitmask = RCC_CFGR_SW_PLL;
+                expected = RCC_CFGR_SWS_PLL;
+            }
+            else {
+                if (!is_hsi_ready()) {
+                    return hal_error::error;
+                }
+                bitmask = RCC_CFGR_SW_HSI;
+                expected = RCC_CFGR_SWS_HSI;
+            }
+            CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, bitmask);
+            auto tickstart = systick::CSysTick::now();
+            while (get_sysclk_source() != expected) {
+                if ((systick::CSysTick::now() - tickstart) > CLOCKSWITCH_TIMEOUT_VALUE) {
+                    return hal_error::timeout;
+                }
+            }
+        }
+        if (flash_latency < flash::CFlash::get_latency()) {
+            flash::CFlash::set_latency<flash_latency>();
+            if (flash::CFlash::get_latency() != flash_latency) {
+                return hal_error::error;
+            }
+        }
+        if constexpr (conf.is_pclk1) {
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, static_cast<std::uint32_t>(conf.hclk_div), RCC_CFGR_PPRE);
+        }
+  
+        /* Update the SystemCoreClock global variable */
+        //SystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> RCC_CFGR_HPRE_BITNUMBER];
+
+        /* Configure the source of time base considering new system clocks settings*/
+        //HAL_InitTick (TICK_INT_PRIORITY);
+  
+        return hal_error::ok;
+    }
+
+    template <OscInitConfig osc_conf>
     requires (is_valid_osc_init_conf<osc_conf>)
     static inline hal_error configure_oscillator () {
         if constexpr (osc_conf.hse_state != hse_states::noconf) {

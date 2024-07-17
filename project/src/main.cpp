@@ -25,6 +25,17 @@ constexpr hal::rcc::OscInitConfig oscillator_config {
     }
 };
 
+constexpr hal::rcc::ClkInitConfig clock_config {
+    .is_sysclk = true,
+    .is_hclk = true,
+    .is_pclk1 = true,
+    .system_clock_source = hal::rcc::system_clock_sources::hsi,
+    .ahb_clk_div = hal::rcc::ahb_clk_dividers::div1,
+    .hclk_div = hal::rcc::hclk_dividers::div1
+};
+
+constexpr std::uint32_t flash_latency { 0 };
+
 void delay (int cycles) {
     volatile int i;
     for (i = 0; i < cycles;) { i = i + 1; }
@@ -32,7 +43,7 @@ void delay (int cycles) {
 
 int main (void) {
     hal::init<systick_config>();
-    hal::configure_system_clock<oscillator_config>();
+    hal::configure_system_clock<oscillator_config, clock_config, flash_latency>();
 
 
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();

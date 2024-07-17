@@ -18,9 +18,12 @@ static inline void init () {
     NVIC_SetPriority(PendSV_IRQn, 1);
 }
 
-template <rcc::OscInitConfig osc_conf>
+template <rcc::OscInitConfig osc_conf, rcc::ClkInitConfig clock_conf, std::uint32_t flash_latency>
 static inline void configure_system_clock () {
     if (rcc::CRcc::configure_oscillator<osc_conf>() != hal_error::ok) {
+        // TODO
+    }
+    if (rcc::CRcc::configure_clock<clock_conf, flash_latency>() != hal_error::ok) {
         // TODO
     }
 }

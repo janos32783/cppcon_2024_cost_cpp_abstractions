@@ -14,6 +14,7 @@ constexpr std::chrono::milliseconds LSI_TIMEOUT_VALUE { 2 };
 constexpr std::chrono::milliseconds PLL_TIMEOUT_VALUE { 2 };
 constexpr std::chrono::milliseconds HSI14_TIMEOUT_VALUE { 2 };
 constexpr std::chrono::milliseconds LSE_STARTUP_TIMEOUT { 5000 };
+constexpr std::chrono::milliseconds CLOCKSWITCH_TIMEOUT_VALUE { 5000 };
 
 constexpr std::uint32_t RCC_PLLSOURCE_HSE = RCC_CFGR_PLLSRC_HSE_PREDIV;
 constexpr std::uint32_t RCC_PLLSOURCE_HSI = RCC_CFGR_PLLSRC_HSI_PREDIV;
@@ -248,21 +249,6 @@ concept is_valid_osc_init_conf = (
     is_valid_pll_init_conf<conf.pll>
 );
 
-// system clock types
-
-enum class system_clock_types {
-    sysclk,
-    hclk,
-    pclk1
-};
-
-template <system_clock_types type>
-concept is_valid_system_clock_type = (
-    (type == system_clock_types::sysclk) ||
-    (type == system_clock_types::hclk) ||
-    (type == system_clock_types::pclk1)
-);
-
 // system clock sources
 
 enum class system_clock_sources {
@@ -321,7 +307,9 @@ concept is_valid_hclk_divider = (
 );
 
 struct ClkInitConfig {
-    system_clock_types system_clock_type { system_clock_types::hclk };
+    bool is_sysclk { false };
+    bool is_hclk { false };
+    bool is_pclk1 { false };
     system_clock_sources system_clock_source { system_clock_sources::hsi };
     ahb_clk_dividers ahb_clk_div { ahb_clk_dividers::div1 };
     hclk_dividers hclk_div { hclk_dividers::div1 };
@@ -329,7 +317,6 @@ struct ClkInitConfig {
 
 template <ClkInitConfig conf>
 concept is_valid_clk_init_conf = (
-    is_valid_system_clock_type<conf.system_clock_type> &&
     is_valid_system_clock_source<conf.system_clock_source> &&
     is_valid_ahb_clk_divider<conf.ahb_clk_div> &&
     is_valid_hclk_divider<conf.hclk_div>
