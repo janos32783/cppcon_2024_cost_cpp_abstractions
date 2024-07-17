@@ -3,6 +3,8 @@
 #include "hal/hal.hpp"
 #include "drv/led.hpp"
 
+void error_handler();
+
 constexpr hal::systick::SystickConfig systick_config {
     .prio = 0,
     .core_clock_freq = 8000000, // 8MHz
@@ -43,7 +45,10 @@ void delay (int cycles) {
 
 int main (void) {
     hal::init<systick_config>();
-    hal::configure_system_clock<oscillator_config, clock_config, flash_latency>();
+    hal::hal_error error = hal::configure_system_clock<oscillator_config, clock_config, flash_latency>();
+    if (error != hal::hal_error::ok) {
+        error_handler();
+    }
 
 
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
@@ -56,5 +61,11 @@ int main (void) {
     while (true) {
         led.toggle();
         delay(200000);
+    }
+}
+
+void error_handler() {
+    __disable_irq();
+    while (true) {
     }
 }

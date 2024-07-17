@@ -19,13 +19,16 @@ static inline void init () {
 }
 
 template <rcc::OscInitConfig osc_conf, rcc::ClkInitConfig clock_conf, std::uint32_t flash_latency>
-static inline void configure_system_clock () {
-    if (rcc::CRcc::configure_oscillator<osc_conf>() != hal_error::ok) {
-        // TODO
+static inline hal_error configure_system_clock () {
+    hal_error error = rcc::CRcc::configure_oscillator<osc_conf>();
+    if (error != hal_error::ok) {
+        return error;
     }
-    if (rcc::CRcc::configure_clock<clock_conf, flash_latency>() != hal_error::ok) {
-        // TODO
+    error = rcc::CRcc::configure_clock<clock_conf, flash_latency>();
+    if (error != hal_error::ok) {
+        return error;
     }
+    return hal_error::ok;
 }
 
 
