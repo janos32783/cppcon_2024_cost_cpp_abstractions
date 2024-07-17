@@ -32,6 +32,9 @@ private:
     static inline bool is_hsi14_ready () {
         return CRegister::is_set(&reinterpret_cast<m_reg_t*>(m_address)->CR2, RCC_CR2_HSI14RDY);
     }
+    static inline bool is_pll_ready () {
+        return CRegister::is_set(&reinterpret_cast<m_reg_t*>(m_address)->CR, RCC_CR_PLLRDY);
+    }
     static inline std::uint32_t get_sysclk_source () {
         return CRegister::get_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_SWS);
     }
@@ -250,88 +253,59 @@ public:
             }
         }
         if constexpr (osc_conf.pll.pll_state != pll_states::noconf) {
-    /* Check if the PLL is used as system clock or not */
-    if(__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_SYSCLKSOURCE_STATUS_PLLCLK)
-    { 
-      if((RCC_OscInitStruct->PLL.PLLState) == RCC_PLL_ON)
-      {
-        /* Check the parameters */
-        assert_param(IS_RCC_PLLSOURCE(RCC_OscInitStruct->PLL.PLLSource));
-        assert_param(IS_RCC_PLL_MUL(RCC_OscInitStruct->PLL.PLLMUL));
-        assert_param(IS_RCC_PREDIV(RCC_OscInitStruct->PLL.PREDIV));
-  
-        /* Disable the main PLL. */
-        __HAL_RCC_PLL_DISABLE();
-        
-        /* Get Start Tick */
-        tickstart = HAL_GetTick();
-        
-        /* Wait till PLL is disabled */
-        while(__HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY)  != RESET)
-        {
-          if((HAL_GetTick() - tickstart ) > PLL_TIMEOUT_VALUE)
-          {
-            return HAL_TIMEOUT;
-          }
-        }
-
-        /* Configure the main PLL clock source, predivider and multiplication factor. */
-        __HAL_RCC_PLL_CONFIG(RCC_OscInitStruct->PLL.PLLSource,
-                             RCC_OscInitStruct->PLL.PREDIV,
-                             RCC_OscInitStruct->PLL.PLLMUL);
-        /* Enable the main PLL. */
-        __HAL_RCC_PLL_ENABLE();
-        
-        /* Get Start Tick */
-        tickstart = HAL_GetTick();
-        
-        /* Wait till PLL is ready */
-        while(__HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY)  == RESET)
-        {
-          if((HAL_GetTick() - tickstart ) > PLL_TIMEOUT_VALUE)
-          {
-            return HAL_TIMEOUT;
-          }
-        }
-      }
-      else
-      {
-        /* Disable the main PLL. */
-        __HAL_RCC_PLL_DISABLE();
- 
-        /* Get Start Tick */
-        tickstart = HAL_GetTick();
-        
-        /* Wait till PLL is disabled */  
-        while(__HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY)  != RESET)
-        {
-          if((HAL_GetTick() - tickstart ) > PLL_TIMEOUT_VALUE)
-          {
-            return HAL_TIMEOUT;
-          }
-        }
-      }
-    }
-    else
-    {
-      /* Check if there is a request to disable the PLL used as System clock source */
-      if((RCC_OscInitStruct->PLL.PLLState) == RCC_PLL_OFF)
-      {
-        return HAL_ERROR;
-      }
-      else
-      {
-        /* Do not return HAL_ERROR if request repeats the current configuration */
-        pll_config  = RCC->CFGR;
-        pll_config2 = RCC->CFGR2;
-        if((READ_BIT(pll_config,  RCC_CFGR_PLLSRC)  != RCC_OscInitStruct->PLL.PLLSource) ||
-           (READ_BIT(pll_config2, RCC_CFGR2_PREDIV) != RCC_OscInitStruct->PLL.PREDIV)    ||
-           (READ_BIT(pll_config,  RCC_CFGR_PLLMUL)  != RCC_OscInitStruct->PLL.PLLMUL))
-        {
-          return HAL_ERROR;
-        }
-      }
-    }
+            if (get_sysclk_source() != RCC_CFGR_SWS_PLL) {
+                CRegister::clear_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR, RCC_CR_PLLON);
+                auto tickstart = systick::CSysTick::now();
+                while (!is_pll_ready()) {
+                    if ((systick::CSysTick::now() - tickstart) > PLL_TIMEOUT_VALUE) {
+                        return hal_error::timeout;
+                    }
+                }
+                if constexpr (osc_conf.pll.pll_state == pll_states::on) {
+                    CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR2, static_cast<std::uint32_t>(osc_conf.pll.pll_div), RCC_CFGR2_PREDIV);
+                    CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, static_cast<std::uint32_t>(osc_conf.pll.pll_mul), RCC_CFGR_PLLMUL);
+                    if constexpr (osc_conf.pll.pll_source == pll_sources::hse) {
+                        CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_PLLSRC);
+                    }
+                    else {
+                        CRegister::clear_bits(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, RCC_CFGR_PLLSRC);
+                    }
+                    CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->CR, RCC_CR_PLLON);
+                    tickstart = systick::CSysTick::now();
+                    while (is_pll_ready()) {
+                        if ((systick::CSysTick::now() - tickstart) > PLL_TIMEOUT_VALUE) {
+                            return hal_error::timeout;
+                        }
+                    }
+                }
+                else {
+                    // if the pll is the sysclock source, it cannot be disabled
+                    if constexpr (osc_conf.pll.pll_state == pll_states::off) {
+                        return hal_error::error;
+                    }
+                    else {
+                        // return error if the configuration request does not match the current configuration
+                        std::uint32_t cfgr = CRegister::get(&reinterpret_cast<m_reg_t*>(m_address)->CFGR);
+                        std::uint32_t cfgr2 = CRegister::get(&reinterpret_cast<m_reg_t*>(m_address)->CFGR2);
+                        if ((cfgr2 & RCC_CFGR2_PREDIV) != static_cast<std::uint32_t>(osc_conf.pll.pll_div)) {
+                            return hal_error::error;
+                        }
+                        if ((cfgr & RCC_CFGR_PLLMUL) != static_cast<std::uint32_t>(osc_conf.pll.pll_mul)) {
+                            return hal_error::error;
+                        }
+                        if constexpr (osc_conf.pll.pll_source == pll_sources::hse) {
+                            if (!(cfgr & RCC_CFGR_PLLSRC)) {
+                                return hal_error::error;
+                            }
+                        }
+                        else {
+                            if (cfgr & RCC_CFGR_PLLSRC) {
+                                return hal_error::error;
+                            }
+                        }
+                    }
+                }
+            }
         }
         return hal_error::ok;
     }
