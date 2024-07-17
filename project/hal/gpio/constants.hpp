@@ -71,6 +71,9 @@ concept is_valid_pin = (
     (pin == pins::pin_15)
 );
 
+template <pins... pin>
+concept are_valid_pins = (is_valid_pin<pin> && ...);
+
 template <pins pin>
 concept is_valid_low_pin = (
     (pin == pins::pin_00) ||
@@ -232,14 +235,14 @@ concept is_valid_set_reset = (
     (val == set_reset::set)
 );
 
-template <pins pin, set_reset val>
-requires (is_valid_pin<pin> && is_valid_set_reset<val>)
+template <set_reset val, pins... pin>
+requires (are_valid_pins<pin ...> && is_valid_set_reset<val>)
 consteval std::uint32_t bsrr_bitmask () {
     if constexpr (val == set_reset::reset) {
-        return GPIO_BSRR_BR_0 << static_cast<std::uint32_t>(pin);
+        return (... | (GPIO_BSRR_BR_0 << static_cast<std::uint32_t>(pin)));
     }
     else {
-        return GPIO_BSRR_BS_0 << static_cast<std::uint32_t>(pin);
+        return (... | (GPIO_BSRR_BS_0 << static_cast<std::uint32_t>(pin)));
     }
 }
 

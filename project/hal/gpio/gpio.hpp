@@ -15,7 +15,7 @@ private:
 public:
     template <modes mode>
     requires (is_valid_mode<mode>)
-    bool configure () const {
+    inline bool configure () const {
         CRegister::set(&m_gpio->MODER, moder_value<pin, mode>(), moder_bitmask<pin>());
         //rcc::CAhbEnRegister ahb_en_register {};
 
@@ -25,21 +25,39 @@ public:
         return true;
     }
 
-    void set () const {
-        CRegister::set_bits(&m_gpio->BSRR, bsrr_bitmask<pin, set_reset::set>());
+    inline void set () const {
+        CRegister::set_bits(&m_gpio->BSRR, bsrr_bitmask<set_reset::set, pin>());
     }
 
-    void reset () const {
-        CRegister::set_bits(&m_gpio->BSRR, bsrr_bitmask<pin, set_reset::reset>());
+    inline void reset () const {
+        CRegister::set_bits(&m_gpio->BSRR, bsrr_bitmask<set_reset::reset, pin>());
     }
 
-    void write (bool level) const {
+    inline void write (bool level) const {
         if (level) {
             set();
         }
         else {
             reset();
         }
+    }
+};
+
+template <ports port>
+requires (is_valid_port<port>)
+class CPort {
+private:
+    static constexpr std::uint32_t m_address = port_to_base_address<port>();
+    using m_reg_t = GPIO_TypeDef;
+public:
+    template <pins... pin>
+    static inline void reset() {
+        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->BSRR, bsrr_bitmask<set_reset::reset, pin...>());
+    }
+
+    template <pins... pin>
+    static inline void set() {
+        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->BSRR, bsrr_bitmask<set_reset::set, pin...>());
     }
 };
 

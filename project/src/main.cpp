@@ -4,6 +4,7 @@
 #include "drv/led.hpp"
 
 void error_handler();
+hal::hal_error init_gpio ();
 
 constexpr std::uint32_t HSE_FREQ = 16000000; // 16MHz external oscillator
 
@@ -46,13 +47,13 @@ void delay (int cycles) {
 }
 
 int main (void) {
-    hal::hal_error error = hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>();
-    if (error != hal::hal_error::ok) {
+    if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
     }
 
-
-    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
+    if (init_gpio() != hal::hal_error::ok) {
+        error_handler();
+    }
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
     gpio.configure<hal::gpio::modes::output>();
@@ -63,6 +64,43 @@ int main (void) {
         led.toggle();
         delay(200000);
     }
+}
+
+hal::hal_error init_gpio () {
+    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_a>();
+    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_b>();
+    hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
+
+    hal::gpio::CPort<hal::gpio::ports::port_a>::reset<
+        hal::gpio::pins::pin_00,
+        hal::gpio::pins::pin_01,
+        hal::gpio::pins::pin_04,
+        hal::gpio::pins::pin_08,
+        hal::gpio::pins::pin_09,
+        hal::gpio::pins::pin_10,
+        hal::gpio::pins::pin_11,
+        hal::gpio::pins::pin_12
+    >();
+
+    hal::gpio::CPort<hal::gpio::ports::port_b>::reset<
+        hal::gpio::pins::pin_02,
+        hal::gpio::pins::pin_05,
+        hal::gpio::pins::pin_06,
+        hal::gpio::pins::pin_07,
+        hal::gpio::pins::pin_08,
+        hal::gpio::pins::pin_09,
+        hal::gpio::pins::pin_10,
+        hal::gpio::pins::pin_11,
+        hal::gpio::pins::pin_12,
+        hal::gpio::pins::pin_13,
+        hal::gpio::pins::pin_14,
+        hal::gpio::pins::pin_15,
+        hal::gpio::pins::pin_12
+    >();
+
+    hal::gpio::CPort<hal::gpio::ports::port_a>::reset<hal::gpio::pins::pin_13>();
+
+    return hal::hal_error::ok;
 }
 
 void error_handler() {
