@@ -13,18 +13,6 @@ class CPin {
 private:
     GPIO_TypeDef* m_gpio { reinterpret_cast<GPIO_TypeDef*>(port_to_base_address<port>()) };
 public:
-    template <modes mode>
-    requires (is_valid_mode<mode>)
-    inline bool configure () const {
-        //CRegister::set(&m_gpio->MODER, moder_value<pin, mode>(), moder_bitmask<pin>());
-        //rcc::CAhbEnRegister ahb_en_register {};
-
-        //ahb_en_register.enable_gpio_clock<port>();
-        //reset();
-
-        return true;
-    }
-
     inline void set () const {
         CRegister::set_bits(&m_gpio->BSRR, bsrr_bitmask<set_reset::set, pin>());
     }

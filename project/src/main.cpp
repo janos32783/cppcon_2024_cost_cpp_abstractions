@@ -5,6 +5,7 @@
 
 void error_handler();
 void init_gpio ();
+void init_adc ();
 
 constexpr std::uint32_t HSE_FREQ = 16000000; // 16MHz external oscillator
 
@@ -131,6 +132,10 @@ void init_gpio () {
     >();
 
     hal::gpio::CPort<hal::gpio::ports::port_c>::configure_pins<gpio_init, hal::gpio::pins::pin_13>();
+}
+
+void init_adc () {
+    
 }
 
 void error_handler() {
