@@ -86,6 +86,9 @@ concept is_valid_low_pin = (
     (pin == pins::pin_07)
 );
 
+template <pins... pin>
+concept are_valid_low_pins = (is_valid_low_pin<pin> && ...);
+
 template <pins pin>
 concept is_valid_high_pin = (
     (pin == pins::pin_08) ||
@@ -97,6 +100,9 @@ concept is_valid_high_pin = (
     (pin == pins::pin_14) ||
     (pin == pins::pin_15)
 );
+
+template <pins... pin>
+concept are_valid_high_pins = (is_valid_high_pin<pin> && ...);
 
 // GPIOx_MODER
 
@@ -115,41 +121,41 @@ concept is_valid_mode = (
     (mode == modes::analog)
 );
 
-template <pins pin, modes mode>
-requires (is_valid_pin<pin> && is_valid_mode<mode>)
+template <modes mode, pins... pin>
+requires (are_valid_pins<pin ...> && is_valid_mode<mode>)
 consteval std::uint32_t moder_value () {
-    return static_cast<std::uint32_t>(mode) << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (static_cast<std::uint32_t>(mode) << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t moder_bitmask () {
-    return GPIO_MODER_MODER0 << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (GPIO_MODER_MODER0 << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
 // GPIOx_OTYPER
 
-enum class types : std::uint32_t {
+enum class output_types : std::uint32_t {
     push_pull  = 0,
     open_drain = 1
 };
 
-template <types type>
-concept is_valid_type = (
-    (type == types::push_pull) ||
-    (type == types::open_drain)
+template <output_types type>
+concept is_valid_output_type = (
+    (type == output_types::push_pull) ||
+    (type == output_types::open_drain)
 );
 
-template <pins pin, types type>
-requires (is_valid_pin<pin> && is_valid_type<type>)
+template <output_types type, pins... pin>
+requires (are_valid_pins<pin ...> && is_valid_output_type<type>)
 consteval std::uint32_t otyper_value () {
-    return static_cast<std::uint32_t>(type) << static_cast<std::uint32_t>(pin);
+    return (... | (static_cast<std::uint32_t>(type) << static_cast<std::uint32_t>(pin)));
 }
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t otyper_bitmask () {
-    return GPIO_OTYPER_OT_0 << static_cast<std::uint32_t>(pin);
+    return (... | (GPIO_OTYPER_OT_0 << static_cast<std::uint32_t>(pin)));
 }
 
 // GPIOx_OSPEEDR
@@ -167,16 +173,16 @@ concept is_valid_speed = (
     (speed == speeds::high)
 );
 
-template <pins pin, speeds speed>
-requires (is_valid_pin<pin> && is_valid_speed<speed>)
+template <speeds speed, pins... pin>
+requires (are_valid_pins<pin ...> && is_valid_speed<speed>)
 consteval std::uint32_t ospeedr_value () {
-    return static_cast<std::uint32_t>(speed) << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (static_cast<std::uint32_t>(speed) << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t ospeedr_bitmask () {
-    return GPIO_OSPEEDR_OSPEEDR0 << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (GPIO_OSPEEDR_OSPEEDR0 << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
 // GPIOx_PUPDR
@@ -194,32 +200,32 @@ concept is_valid_pull_type = (
     (pull_type == pull_types::pull_down)
 );
 
-template <pins pin, pull_types pull_type>
-requires (is_valid_pin<pin> && is_valid_pull_type<pull_type>)
+template <pull_types pull_type, pins... pin>
+requires (are_valid_pins<pin ...> && is_valid_pull_type<pull_type>)
 consteval std::uint32_t pupdr_value () {
-    return static_cast<std::uint32_t>(pull_type) << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (static_cast<std::uint32_t>(pull_type) << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t pupdr_bitmask () {
-    return GPIO_PUPDR_PUPDR0 << (static_cast<std::uint32_t>(pin) * 2);
+    return (... | (GPIO_PUPDR_PUPDR0 << (static_cast<std::uint32_t>(pin) * 2)));
 }
 
 // GPIOx_IDR
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t idr_bitmask () {
-    return GPIO_IDR_0 << static_cast<std::uint32_t>(pin);
+    return (... | (GPIO_IDR_0 << static_cast<std::uint32_t>(pin)));
 }
 
 // GPIOx_ODR
 
-template <pins pin>
-requires (is_valid_pin<pin>)
+template <pins... pin>
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t odr_bitmask () {
-    return GPIO_ODR_0 << static_cast<std::uint32_t>(pin);
+    return (... | (GPIO_ODR_0 << static_cast<std::uint32_t>(pin)));
 }
 
 // GPIOx_BSRR
@@ -272,29 +278,106 @@ concept is_valid_alternate_function = (
     (alternate_function == alternate_functions::af7)
 );
 
-template <pins pin, alternate_functions alternate_function>
-requires (is_valid_low_pin<pin> && is_valid_alternate_function<alternate_function>)
+template <alternate_functions alternate_function, pins... pin>
+requires (are_valid_high_pins<pin ...> && is_valid_alternate_function<alternate_function>)
 consteval std::uint32_t afrl_value () {
-    return static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4);
+    return (... | (static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4)));
 }
 
-template <pins pin>
-requires (is_valid_low_pin<pin>)
+template <pins... pin>
+requires (are_valid_high_pins<pin ...>)
 consteval std::uint32_t afrl_bitmask () {
-    return GPIO_AFRL_AFSEL0 << (static_cast<std::uint32_t>(pin) * 4);
+    return (... | (GPIO_AFRL_AFSEL0 << (static_cast<std::uint32_t>(pin) * 4)));
 }
 
-template <pins pin, alternate_functions alternate_function>
-requires (is_valid_high_pin<pin> && is_valid_alternate_function<alternate_function>)
+template <alternate_functions alternate_function, pins... pin>
+requires (are_valid_high_pins<pin ...> && is_valid_alternate_function<alternate_function>)
 consteval std::uint32_t afrh_value () {
-    return static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4);
+    return (... | (static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4)));
 }
 
-template <pins pin>
-requires (is_valid_high_pin<pin>)
+template <pins... pin>
+requires (are_valid_high_pins<pin ...>)
 consteval std::uint32_t afrh_bitmask () {
-    return GPIO_AFRH_AFSEL8 << (static_cast<std::uint32_t>(pin) * 4);
+    return (... | (GPIO_AFRH_AFSEL8 << (static_cast<std::uint32_t>(pin) * 4)));
 }
+
+struct GpioInitConfig {
+    modes mode { modes::input };
+    output_types output_type { output_types::push_pull };
+    speeds speed { speeds::low };
+    pull_types pull_type { pull_types::none };
+    alternate_functions alternate_function { alternate_functions::af0 };
+};
+
+template <GpioInitConfig conf>
+concept is_valid_gpio_config = (
+    (is_valid_mode<conf.mode>) &&
+    (is_valid_output_type<conf.output_type>) &&
+    (is_valid_speed<conf.speed>) &&
+    (is_valid_pull_type<conf.pull_type>) &&
+    (is_valid_alternate_function<conf.alternate_function>)
+);
+
+
+/* AF 0 */
+#define GPIO_AF0_EVENTOUT     ((uint8_t)0x00U)  /*!< AF0: EVENTOUT Alternate Function mapping  */
+#define GPIO_AF0_SWDIO        ((uint8_t)0x00U)  /*!< AF0: SWDIO Alternate Function mapping     */
+#define GPIO_AF0_SWCLK        ((uint8_t)0x00U)  /*!< AF0: SWCLK Alternate Function mapping     */
+#define GPIO_AF0_MCO          ((uint8_t)0x00U)  /*!< AF0: MCO Alternate Function mapping       */
+#define GPIO_AF0_IR           ((uint8_t)0x00U)  /*!< AF0: IR Alternate Function mapping        */
+#define GPIO_AF0_SPI1         ((uint8_t)0x00U)  /*!< AF0: SPI1 Alternate Function mapping      */
+#define GPIO_AF0_SPI2         ((uint8_t)0x00U)  /*!< AF0: SPI2 Alternate Function mapping      */
+#define GPIO_AF0_TIM3         ((uint8_t)0x00U)  /*!< AF0: TIM3 Alternate Function mapping      */
+#define GPIO_AF0_TIM14        ((uint8_t)0x00U)  /*!< AF0: TIM14 Alternate Function mapping     */
+#define GPIO_AF0_TIM15        ((uint8_t)0x00U)  /*!< AF0: TIM15 Alternate Function mapping     */
+#define GPIO_AF0_TIM17        ((uint8_t)0x00U)  /*!< AF0: TIM17 Alternate Function mapping     */
+#define GPIO_AF0_USART1       ((uint8_t)0x00U)  /*!< AF0: USART1 Alternate Function mapping    */
+#define GPIO_AF0_USART4       ((uint8_t)0x00U)  /*!< AF0: USART4 Alternate Function mapping    */
+
+/* AF 1 */
+#define GPIO_AF1_TIM3         ((uint8_t)0x01U)  /*!< AF1: TIM3 Alternate Function mapping      */
+#define GPIO_AF1_TIM15        ((uint8_t)0x01U)  /*!< AF1: TIM15 Alternate Function mapping     */
+#define GPIO_AF1_USART1       ((uint8_t)0x01U)  /*!< AF1: USART1 Alternate Function mapping    */
+#define GPIO_AF1_USART2       ((uint8_t)0x01U)  /*!< AF1: USART2 Alternate Function mapping    */
+#define GPIO_AF1_USART3       ((uint8_t)0x01U)  /*!< AF1: USART3 Alternate Function mapping    */
+#define GPIO_AF1_IR           ((uint8_t)0x01U)  /*!< AF1: IR Alternate Function mapping        */
+#define GPIO_AF1_EVENTOUT     ((uint8_t)0x01U)  /*!< AF1: EVENTOUT Alternate Function mapping  */
+#define GPIO_AF1_I2C1         ((uint8_t)0x01U)  /*!< AF1: I2C1 Alternate Function mapping      */
+#define GPIO_AF1_I2C2         ((uint8_t)0x01U)  /*!< AF1: I2C2 Alternate Function mapping      */
+#define GPIO_AF1_SPI2         ((uint8_t)0x01U)  /*!< AF1: SPI2 Alternate Function mapping      */
+
+/* AF 2 */
+#define GPIO_AF2_TIM1         ((uint8_t)0x02U)  /*!< AF2: TIM1 Alternate Function mapping      */
+#define GPIO_AF2_TIM16        ((uint8_t)0x02U)  /*!< AF2: TIM16 Alternate Function mapping     */
+#define GPIO_AF2_TIM17        ((uint8_t)0x02U)  /*!< AF2: TIM17 Alternate Function mapping     */
+#define GPIO_AF2_EVENTOUT     ((uint8_t)0x02U)  /*!< AF2: EVENTOUT Alternate Function mapping  */
+#define GPIO_AF2_USART5       ((uint8_t)0x02U)  /*!< AF2: USART5 Alternate Function mapping    */
+#define GPIO_AF2_USART6       ((uint8_t)0x02U)  /*!< AF2: USART6 Alternate Function mapping    */
+
+/* AF 3 */
+#define GPIO_AF3_EVENTOUT     ((uint8_t)0x03U)  /*!< AF3: EVENTOUT Alternate Function mapping  */
+#define GPIO_AF3_TIM15        ((uint8_t)0x03U)  /*!< AF3: TIM15 Alternate Function mapping     */
+#define GPIO_AF3_I2C1         ((uint8_t)0x03U)  /*!< AF3: I2C1 Alternate Function mapping      */
+
+/* AF 4 */
+#define GPIO_AF4_TIM14        ((uint8_t)0x04U)  /*!< AF4: TIM14 Alternate Function mapping     */
+#define GPIO_AF4_USART4       ((uint8_t)0x04U)  /*!< AF4: USART4 Alternate Function mapping    */
+#define GPIO_AF4_USART3       ((uint8_t)0x04U)  /*!< AF4: USART3 Alternate Function mapping    */
+#define GPIO_AF4_I2C1         ((uint8_t)0x04U)  /*!< AF4: I2C1 Alternate Function mapping      */
+#define GPIO_AF4_USART5       ((uint8_t)0x04U)  /*!< AF4: USART5 Alternate Function mapping    */
+
+/* AF 5 */
+#define GPIO_AF5_TIM15        ((uint8_t)0x05U)  /*!< AF5: TIM15 Alternate Function mapping     */
+#define GPIO_AF5_TIM16        ((uint8_t)0x05U)  /*!< AF5: TIM16 Alternate Function mapping     */
+#define GPIO_AF5_TIM17        ((uint8_t)0x05U)  /*!< AF5: TIM17 Alternate Function mapping     */
+#define GPIO_AF5_SPI2         ((uint8_t)0x05U)  /*!< AF5: SPI2 Alternate Function mapping      */
+#define GPIO_AF5_I2C2         ((uint8_t)0x05U)  /*!< AF5: I2C2 Alternate Function mapping      */
+#define GPIO_AF5_MCO          ((uint8_t)0x05U)  /*!< AF5: MCO Alternate Function mapping       */
+#define GPIO_AF5_USART6       ((uint8_t)0x05U)  /*!< AF5: USART6 Alternate Function mapping    */
+
+/* AF 6 */
+#define GPIO_AF6_EVENTOUT     ((uint8_t)0x06U)  /*!< AF6: EVENTOUT Alternate Function mapping  */
 
 } /* namespace gpio */
 } /* namespace hal */

@@ -4,7 +4,7 @@
 #include "drv/led.hpp"
 
 void error_handler();
-hal::hal_error init_gpio ();
+void init_gpio ();
 
 constexpr std::uint32_t HSE_FREQ = 16000000; // 16MHz external oscillator
 
@@ -50,10 +50,7 @@ int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
     }
-
-    if (init_gpio() != hal::hal_error::ok) {
-        error_handler();
-    }
+    init_gpio();
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
     gpio.configure<hal::gpio::modes::output>();
@@ -66,7 +63,7 @@ int main (void) {
     }
 }
 
-hal::hal_error init_gpio () {
+void init_gpio () {
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_a>();
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_b>();
     hal::rcc::CRcc::enable_gpio_clock<hal::gpio::ports::port_c>();
@@ -100,7 +97,41 @@ hal::hal_error init_gpio () {
 
     hal::gpio::CPort<hal::gpio::ports::port_a>::reset<hal::gpio::pins::pin_13>();
 
-    return hal::hal_error::ok;
+    constexpr hal::gpio::GpioInitConfig gpio_init {
+        .mode = hal::gpio::modes::output,
+        .output_type = hal::gpio::output_types::push_pull,
+        .speed = hal::gpio::speeds::low,
+        .pull_type = hal::gpio::pull_types::none
+    };
+
+    hal::gpio::CPort<hal::gpio::ports::port_a>::configure_pins<gpio_init, 
+        hal::gpio::pins::pin_00,
+        hal::gpio::pins::pin_01,
+        hal::gpio::pins::pin_04,
+        hal::gpio::pins::pin_08,
+        hal::gpio::pins::pin_09,
+        hal::gpio::pins::pin_10,
+        hal::gpio::pins::pin_11,
+        hal::gpio::pins::pin_12
+    >();
+
+    hal::gpio::CPort<hal::gpio::ports::port_b>::configure_pins<gpio_init, 
+        hal::gpio::pins::pin_02,
+        hal::gpio::pins::pin_05,
+        hal::gpio::pins::pin_06,
+        hal::gpio::pins::pin_07,
+        hal::gpio::pins::pin_08,
+        hal::gpio::pins::pin_09,
+        hal::gpio::pins::pin_10,
+        hal::gpio::pins::pin_11,
+        hal::gpio::pins::pin_12,
+        hal::gpio::pins::pin_13,
+        hal::gpio::pins::pin_14,
+        hal::gpio::pins::pin_15,
+        hal::gpio::pins::pin_12
+    >();
+
+    hal::gpio::CPort<hal::gpio::ports::port_c>::configure_pins<gpio_init, hal::gpio::pins::pin_13>();
 }
 
 void error_handler() {

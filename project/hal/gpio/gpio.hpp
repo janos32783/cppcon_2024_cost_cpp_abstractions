@@ -16,11 +16,11 @@ public:
     template <modes mode>
     requires (is_valid_mode<mode>)
     inline bool configure () const {
-        CRegister::set(&m_gpio->MODER, moder_value<pin, mode>(), moder_bitmask<pin>());
+        //CRegister::set(&m_gpio->MODER, moder_value<pin, mode>(), moder_bitmask<pin>());
         //rcc::CAhbEnRegister ahb_en_register {};
 
         //ahb_en_register.enable_gpio_clock<port>();
-        reset();
+        //reset();
 
         return true;
     }
@@ -58,6 +58,29 @@ public:
     template <pins... pin>
     static inline void set() {
         CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->BSRR, bsrr_bitmask<set_reset::set, pin...>());
+    }
+
+    template <GpioInitConfig conf, pins... pin>
+    requires (is_valid_gpio_config<conf> && are_valid_pins<pin...>)
+    static inline void configure_pins() {
+        static_assert((sizeof...(pin) > 0), "No pins provided.");
+        if constexpr ((conf.mode == modes::output) || (conf.mode == modes::alt_func)) {
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->OSPEEDR, ospeedr_value<conf.speed, pin...>(), ospeedr_bitmask<pin...>());
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->OTYPER, otyper_value<conf.output_type, pin...>(), otyper_bitmask<pin...>());
+        }
+        if constexpr (conf.mode != modes::analog) {
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->PUPDR, pupdr_value<conf.pull_type, pin...>(), pupdr_bitmask<pin...>());
+        }
+        if constexpr (conf.mode == modes::alt_func) {
+            if constexpr ((is_valid_low_pin<pin> && ...)) {
+                CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[0], afrl_value<conf.alternate_function, pin...>(), afrl_bitmask<pin...>());
+            }
+            else {
+                CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[1], afrh_value<conf.alternate_function, pin...>(), afrh_bitmask<pin...>());
+            }
+        }
+        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->MODER, moder_value<conf.mode, pin...>(), moder_bitmask<pin...>());
+        // TODO : external interrupt
     }
 };
 
