@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include "hal/register.hpp"
 #include "hal/common.hpp"
 
@@ -29,7 +27,7 @@ struct SystickConfig {
 
 class CSysTick {
 private:
-    static inline std::chrono::milliseconds m_time { std::chrono::milliseconds{ 0 } };
+    static inline std::uint64_t m_time { 0 };
     static constexpr std::uint32_t m_address = SCS_BASE;
     using m_reg_t = SysTick_Type;
 
@@ -38,7 +36,7 @@ private:
     }
 public:
     static inline void tick () { ++m_time; }
-    static inline std::chrono::milliseconds now() noexcept { return m_time; }
+    static inline std::uint64_t now() noexcept { return m_time; }
 
     template <SystickConfig config>
     requires (is_valid_frequency<config.systick_freq> && is_preemptive_prio<config.prio>)
@@ -46,7 +44,7 @@ public:
         constexpr std::uint32_t ticks = calculate_ticks(config.core_clock_freq, config.systick_freq);
         // period of N -> use a reload value of N-1
         static_assert((ticks - 1) <= SysTick_LOAD_RELOAD_Msk, "impossible reload value");
-        m_time = std::chrono::milliseconds{ 0 };
+        m_time = 0;
         SysTick_Config(ticks);
 
         static_assert(config.prio < (1UL << __NVIC_PRIO_BITS), "invalid systick priority");
