@@ -248,5 +248,92 @@ concept is_valid_osc_init_conf = (
     is_valid_pll_init_conf<conf.pll>
 );
 
+// system clock types
+
+enum class system_clock_types {
+    sysclk,
+    hclk,
+    pclk1
+};
+
+template <system_clock_types type>
+concept is_valid_system_clock_type = (
+    (type == system_clock_types::sysclk) ||
+    (type == system_clock_types::hclk) ||
+    (type == system_clock_types::pclk1)
+);
+
+// system clock sources
+
+enum class system_clock_sources {
+    hsi,
+    hse,
+    pll
+};
+
+template <system_clock_sources src>
+concept is_valid_system_clock_source = (
+    (src == system_clock_sources::hsi) ||
+    (src == system_clock_sources::hse) ||
+    (src == system_clock_sources::pll)
+);
+
+enum class ahb_clk_dividers : std::uint32_t {
+    div1   = RCC_CFGR_HPRE_DIV1,
+    div2   = RCC_CFGR_HPRE_DIV2,
+    div4   = RCC_CFGR_HPRE_DIV4,
+    div8   = RCC_CFGR_HPRE_DIV8,
+    div16  = RCC_CFGR_HPRE_DIV16,
+    div64  = RCC_CFGR_HPRE_DIV64,
+    div128 = RCC_CFGR_HPRE_DIV128,
+    div256 = RCC_CFGR_HPRE_DIV256,
+    div512 = RCC_CFGR_HPRE_DIV512
+};
+
+template <ahb_clk_dividers div>
+concept is_valid_ahb_clk_divider = (
+    (div == ahb_clk_dividers::div1) ||
+    (div == ahb_clk_dividers::div2) ||
+    (div == ahb_clk_dividers::div4) ||
+    (div == ahb_clk_dividers::div8) ||
+    (div == ahb_clk_dividers::div16) ||
+    (div == ahb_clk_dividers::div64) ||
+    (div == ahb_clk_dividers::div128) ||
+    (div == ahb_clk_dividers::div256) ||
+    (div == ahb_clk_dividers::div512)
+);
+
+enum class hclk_dividers : std::uint32_t {
+    div1  = RCC_CFGR_PPRE_DIV1,
+    div2  = RCC_CFGR_PPRE_DIV2,
+    div4  = RCC_CFGR_PPRE_DIV4,
+    div8  = RCC_CFGR_PPRE_DIV8,
+    div16 = RCC_CFGR_PPRE_DIV16
+};
+
+template <hclk_dividers div>
+concept is_valid_hclk_divider = (
+    (div == hclk_dividers::div1) ||
+    (div == hclk_dividers::div2) ||
+    (div == hclk_dividers::div4) ||
+    (div == hclk_dividers::div8) ||
+    (div == hclk_dividers::div16)
+);
+
+struct ClkInitConfig {
+    system_clock_types system_clock_type { system_clock_types::hclk };
+    system_clock_sources system_clock_source { system_clock_sources::hsi };
+    ahb_clk_dividers ahb_clk_div { ahb_clk_dividers::div1 };
+    hclk_dividers hclk_div { hclk_dividers::div1 };
+};
+
+template <ClkInitConfig conf>
+concept is_valid_clk_init_conf = (
+    is_valid_system_clock_type<conf.system_clock_type> &&
+    is_valid_system_clock_source<conf.system_clock_source> &&
+    is_valid_ahb_clk_divider<conf.ahb_clk_div> &&
+    is_valid_hclk_divider<conf.hclk_div>
+);
+
 } /* namespace rcc */
 } /* namespace hal */
