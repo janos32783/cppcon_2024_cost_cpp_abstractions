@@ -10,6 +10,47 @@
 namespace hal {
 namespace rcc {
 
+template <OscInitConfig osc_conf, ClkInitConfig clk_conf, std::uint32_t HSE_FREQ>
+requires (is_valid_osc_init_conf<osc_conf> && is_valid_clk_init_conf<clk_conf>)
+consteval std::uint32_t calculate_core_frequency () {
+    std::uint32_t core_freq = 0;
+    if constexpr (clk_conf.system_clock_source == system_clock_sources::hsi) {
+        core_freq = HSI_FREQ;
+    }
+    else if constexpr (clk_conf.system_clock_source == system_clock_sources::hse) {
+        core_freq = HSE_FREQ;
+    }
+    else if constexpr (clk_conf.system_clock_source == system_clock_sources::pll) {
+        std::uint32_t pllmull = (static_cast<std::uint32_t>(osc_conf.pll.pll_mul) >> RCC_CFGR_PLLMUL_Pos) + 2;
+        std::uint32_t predivfactor = static_cast<std::uint32_t>(osc_conf.pll.pll_div) + 1;
+        if constexpr (osc_conf.pll.pll_source == pll_sources::hse) {
+            // HSE used as PLL clock source : SystemCoreClock = HSE/PREDIV * PLLMUL
+            core_freq = (HSE_FREQ / predivfactor) * pllmull;
+        }
+        else {
+            // HSI used as PLL clock source : SystemCoreClock = HSI/2 * PLLMUL
+            core_freq = (HSI_FREQ / 2) * pllmull;
+        }
+    }
+    else {
+        core_freq = HSI_FREQ;
+    }
+    std::uint8_t hclk_prescaler = 0;
+    switch (clk_conf.ahb_clk_div) {
+        case ahb_clk_dividers::div1   : { hclk_prescaler = 0; break; }
+        case ahb_clk_dividers::div2   : { hclk_prescaler = 1; break; }
+        case ahb_clk_dividers::div4   : { hclk_prescaler = 2; break; }
+        case ahb_clk_dividers::div8   : { hclk_prescaler = 3; break; }
+        case ahb_clk_dividers::div16  : { hclk_prescaler = 4; break; }
+        case ahb_clk_dividers::div64  : { hclk_prescaler = 6; break; }
+        case ahb_clk_dividers::div128 : { hclk_prescaler = 7; break; }
+        case ahb_clk_dividers::div256 : { hclk_prescaler = 8; break; }
+        case ahb_clk_dividers::div512 : { hclk_prescaler = 9; break; }
+    }
+    core_freq >>= hclk_prescaler;
+    return core_freq;
+}
+
 class CRcc {
 private:
     static constexpr std::uint32_t m_address = RCC_BASE;

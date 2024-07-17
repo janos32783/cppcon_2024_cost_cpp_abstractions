@@ -5,6 +5,8 @@
 namespace hal {
 namespace rcc {
 
+constexpr std::uint32_t HSI_FREQ { 8000000 };
+
 // in ms (milliseconds)
 constexpr std::uint32_t RCC_DBP_TIMEOUT_VALUE { 100 };
 constexpr std::uint32_t HSE_TIMEOUT_VALUE { 100 };
@@ -171,7 +173,7 @@ concept is_valid_pll_mul_factor = (
     (mul == pll_mul_factors::mul16)
 );
 
-enum class pll_predic_factors : std::uint32_t {
+enum class pll_prediv_factors : std::uint32_t {
     div1  = RCC_CFGR2_PREDIV_DIV1,
     div2  = RCC_CFGR2_PREDIV_DIV2,
     div3  = RCC_CFGR2_PREDIV_DIV3,
@@ -190,31 +192,31 @@ enum class pll_predic_factors : std::uint32_t {
     div16 = RCC_CFGR2_PREDIV_DIV16
 };
 
-template <pll_predic_factors div>
+template <pll_prediv_factors div>
 concept is_valid_pll_prediv_factor = (
-    (div == pll_predic_factors::div1) ||
-    (div == pll_predic_factors::div2) ||
-    (div == pll_predic_factors::div3) ||
-    (div == pll_predic_factors::div4) ||
-    (div == pll_predic_factors::div5) ||
-    (div == pll_predic_factors::div6) ||
-    (div == pll_predic_factors::div7) ||
-    (div == pll_predic_factors::div8) ||
-    (div == pll_predic_factors::div9) ||
-    (div == pll_predic_factors::div10) ||
-    (div == pll_predic_factors::div11) ||
-    (div == pll_predic_factors::div12) ||
-    (div == pll_predic_factors::div13) ||
-    (div == pll_predic_factors::div14) ||
-    (div == pll_predic_factors::div15) ||
-    (div == pll_predic_factors::div16)
+    (div == pll_prediv_factors::div1) ||
+    (div == pll_prediv_factors::div2) ||
+    (div == pll_prediv_factors::div3) ||
+    (div == pll_prediv_factors::div4) ||
+    (div == pll_prediv_factors::div5) ||
+    (div == pll_prediv_factors::div6) ||
+    (div == pll_prediv_factors::div7) ||
+    (div == pll_prediv_factors::div8) ||
+    (div == pll_prediv_factors::div9) ||
+    (div == pll_prediv_factors::div10) ||
+    (div == pll_prediv_factors::div11) ||
+    (div == pll_prediv_factors::div12) ||
+    (div == pll_prediv_factors::div13) ||
+    (div == pll_prediv_factors::div14) ||
+    (div == pll_prediv_factors::div15) ||
+    (div == pll_prediv_factors::div16)
 );
 
 struct PllInitConfig {
     pll_states pll_state { pll_states::noconf };
     pll_sources pll_source { pll_sources::hsi };
     pll_mul_factors pll_mul { pll_mul_factors::mul2 };
-    pll_predic_factors pll_div { pll_predic_factors::div1 };
+    pll_prediv_factors pll_div { pll_prediv_factors::div1 };
 };
 
 template <PllInitConfig conf>

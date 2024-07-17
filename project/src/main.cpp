@@ -5,9 +5,11 @@
 
 void error_handler();
 
+constexpr std::uint32_t HSE_FREQ = 16000000; // 16MHz external oscillator
+
 constexpr hal::systick::SystickConfig systick_config {
     .prio = 0,
-    .core_clock_freq = 8000000, // 8MHz
+    .core_clock_freq = hal::rcc::HSI_FREQ,
     .systick_freq = hal::systick::tick_frequencies::freq_1kHz
 };
 
@@ -23,7 +25,7 @@ constexpr hal::rcc::OscInitConfig oscillator_config {
         .pll_state = hal::rcc::pll_states::noconf,
         .pll_source = hal::rcc::pll_sources::hsi,
         .pll_mul = hal::rcc::pll_mul_factors::mul2,
-        .pll_div = hal::rcc::pll_predic_factors::div1
+        .pll_div = hal::rcc::pll_prediv_factors::div1
     }
 };
 
@@ -44,8 +46,7 @@ void delay (int cycles) {
 }
 
 int main (void) {
-    hal::init<systick_config>();
-    hal::hal_error error = hal::configure_system_clock<oscillator_config, clock_config, flash_latency>();
+    hal::hal_error error = hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>();
     if (error != hal::hal_error::ok) {
         error_handler();
     }
