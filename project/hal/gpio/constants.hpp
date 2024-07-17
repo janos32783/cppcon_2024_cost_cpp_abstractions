@@ -52,29 +52,6 @@ enum class pins : std::uint8_t {
 };
 
 template <pins pin>
-concept is_valid_pin = (
-    (pin == pins::pin_00) ||
-    (pin == pins::pin_01) ||
-    (pin == pins::pin_02) ||
-    (pin == pins::pin_03) ||
-    (pin == pins::pin_04) ||
-    (pin == pins::pin_05) ||
-    (pin == pins::pin_06) ||
-    (pin == pins::pin_07) ||
-    (pin == pins::pin_08) ||
-    (pin == pins::pin_09) ||
-    (pin == pins::pin_10) ||
-    (pin == pins::pin_11) ||
-    (pin == pins::pin_12) ||
-    (pin == pins::pin_13) ||
-    (pin == pins::pin_14) ||
-    (pin == pins::pin_15)
-);
-
-template <pins... pin>
-concept are_valid_pins = (is_valid_pin<pin> && ...);
-
-template <pins pin>
 concept is_valid_low_pin = (
     (pin == pins::pin_00) ||
     (pin == pins::pin_01) ||
@@ -103,6 +80,14 @@ concept is_valid_high_pin = (
 
 template <pins... pin>
 concept are_valid_high_pins = (is_valid_high_pin<pin> && ...);
+
+template <pins pin>
+concept is_valid_pin = (
+    is_valid_low_pin<pin> || is_valid_high_pin<pin>
+);
+
+template <pins... pin>
+concept are_valid_pins = (is_valid_pin<pin> && ...);
 
 // GPIOx_MODER
 
@@ -279,27 +264,27 @@ concept is_valid_alternate_function = (
 );
 
 template <alternate_functions alternate_function, pins... pin>
-requires (are_valid_high_pins<pin ...> && is_valid_alternate_function<alternate_function>)
+requires (are_valid_pins<pin ...> && is_valid_alternate_function<alternate_function>)
 consteval std::uint32_t afrl_value () {
-    return (... | (static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4)));
+    return (... | (is_valid_low_pin<pin> ? (static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4)) : 0));
 }
 
 template <pins... pin>
-requires (are_valid_high_pins<pin ...>)
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t afrl_bitmask () {
-    return (... | (GPIO_AFRL_AFSEL0 << (static_cast<std::uint32_t>(pin) * 4)));
+    return (... | (is_valid_low_pin<pin> ? (GPIO_AFRL_AFSEL0 << (static_cast<std::uint32_t>(pin) * 4)) : 0));
 }
 
 template <alternate_functions alternate_function, pins... pin>
-requires (are_valid_high_pins<pin ...> && is_valid_alternate_function<alternate_function>)
+requires (are_valid_pins<pin ...> && is_valid_alternate_function<alternate_function>)
 consteval std::uint32_t afrh_value () {
-    return (... | (static_cast<std::uint32_t>(alternate_function) << (static_cast<std::uint32_t>(pin) * 4)));
+    return (... | (is_valid_high_pin<pin> ? (static_cast<std::uint32_t>(alternate_function) << ((static_cast<std::uint32_t>(pin) - 8) * 4)) : 0));
 }
 
 template <pins... pin>
-requires (are_valid_high_pins<pin ...>)
+requires (are_valid_pins<pin ...>)
 consteval std::uint32_t afrh_bitmask () {
-    return (... | (GPIO_AFRH_AFSEL8 << (static_cast<std::uint32_t>(pin) * 4)));
+    return (... | (is_valid_high_pin<pin> ? (GPIO_AFRH_AFSEL8 << ((static_cast<std::uint32_t>(pin) - 8) * 4)) : 0));
 }
 
 struct GpioInitConfig {

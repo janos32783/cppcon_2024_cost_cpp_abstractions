@@ -72,12 +72,8 @@ public:
             CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->PUPDR, pupdr_value<conf.pull_type, pin...>(), pupdr_bitmask<pin...>());
         }
         if constexpr (conf.mode == modes::alt_func) {
-            if constexpr ((is_valid_low_pin<pin> && ...)) {
-                CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[0], afrl_value<conf.alternate_function, pin...>(), afrl_bitmask<pin...>());
-            }
-            else {
-                CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[1], afrh_value<conf.alternate_function, pin...>(), afrh_bitmask<pin...>());
-            }
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[0], afrl_value<conf.alternate_function, pin...>(), afrl_bitmask<pin...>());
+            CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[1], afrh_value<conf.alternate_function, pin...>(), afrh_bitmask<pin...>());
         }
         CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->MODER, moder_value<conf.mode, pin...>(), moder_bitmask<pin...>());
         // TODO : external interrupt

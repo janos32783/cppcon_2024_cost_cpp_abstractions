@@ -91,8 +91,7 @@ void init_gpio () {
         hal::gpio::pins::pin_12,
         hal::gpio::pins::pin_13,
         hal::gpio::pins::pin_14,
-        hal::gpio::pins::pin_15,
-        hal::gpio::pins::pin_12
+        hal::gpio::pins::pin_15
     >();
 
     hal::gpio::CPort<hal::gpio::ports::port_a>::reset<hal::gpio::pins::pin_13>();
