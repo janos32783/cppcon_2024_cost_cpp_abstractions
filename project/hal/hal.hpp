@@ -5,6 +5,7 @@
 #include "hal/rcc/rcc.hpp"
 #include "hal/systick/systick.hpp"
 #include "hal/gpio/gpio.hpp"
+#include "hal/adc/adc.hpp"
 
 namespace hal {
 

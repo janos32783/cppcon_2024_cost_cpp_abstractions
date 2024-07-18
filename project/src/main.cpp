@@ -47,6 +47,8 @@ void delay (int cycles) {
     for (i = 0; i < cycles;) { i = i + 1; }
 }
 
+using ADC_1 = hal::adc::CAdc<hal::adc::adc_instances::adc1>;
+
 int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
@@ -54,7 +56,7 @@ int main (void) {
     init_gpio();
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
-    gpio.configure<hal::gpio::modes::output>();
+    //gpio.configure<hal::gpio::modes::output>();
 
     drv::CLed<decltype(gpio)> led { &gpio };
 
@@ -135,7 +137,29 @@ void init_gpio () {
 }
 
 void init_adc () {
-    
+/*
+struct AdcInitConfig {
+    clock_prescalers clock_prescaler { clock_prescalers::async_div_1 };
+    resolutions resolution { resolutions::res_12_bit };
+    data_alignments data_alignment { data_alignments::right };
+    scan_directions scan_direction { scan_directions::forward };
+    eoc_selections eoc_selection { eoc_selections::single };
+    bool low_power_auto_wait_enabled { false };
+    bool low_power_auto_power_off_enabled { false };
+    bool continuous_conv_mode_enabled { false };
+    bool discontinuous_conv_mode_enabled { false };
+    external_triggers external_trigger { external_triggers::t1_trgo };
+    external_trigger_edges external_trigger_edge { external_trigger_edges::none };
+    bool dma_continuous_request_enabled { false };
+    overrun_behaviors overrun_behavior { overrun_behaviors::overwrite };
+    sample_time_cycles sample_time_cycle { sample_time_cycles::cycles_1_5 };
+};
+*/
+
+    constexpr hal::adc::AdcInitConfig conf {
+
+    };
+    ADC_1::init<conf, hal::gpio::ports::port_a, hal::gpio::pins::pin_06, hal::gpio::pins::pin_07>();
 }
 
 void error_handler() {

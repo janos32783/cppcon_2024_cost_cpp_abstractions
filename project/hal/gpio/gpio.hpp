@@ -39,11 +39,13 @@ private:
     using m_reg_t = GPIO_TypeDef;
 public:
     template <pins... pin>
+    requires (are_valid_pins<pin...>)
     static inline void reset() {
         CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->BSRR, bsrr_bitmask<set_reset::reset, pin...>());
     }
 
     template <pins... pin>
+    requires (are_valid_pins<pin...>)
     static inline void set() {
         CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->BSRR, bsrr_bitmask<set_reset::set, pin...>());
     }

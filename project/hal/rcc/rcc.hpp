@@ -3,6 +3,7 @@
 #include "hal/register.hpp"
 #include "hal/rcc/constants.hpp"
 #include "hal/gpio/constants.hpp"
+#include "hal/adc/constants.hpp"
 #include "hal/flash/flash.hpp"
 #include "hal/systick/systick.hpp"
 #include "hal/common.hpp"
@@ -100,6 +101,13 @@ public:
         else if constexpr (port == gpio::ports::port_c) { CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->AHBENR, RCC_AHBENR_GPIOCEN); }
         else if constexpr (port == gpio::ports::port_d) { CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->AHBENR, RCC_AHBENR_GPIODEN); }
         else { CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->AHBENR, RCC_AHBENR_GPIOFEN); }
+        // delay after an RCC peripheral clock enabling
+        delay();
+    }
+    template<adc::adc_instances instance>
+    requires (adc::is_valid_adc_instance<instance>)
+    static inline void enable_adc_clock () {
+        if constexpr (instance == adc::adc_instances::adc1) { CRegister::set_bits(&reinterpret_cast<m_reg_t*>(m_address)->APB2ENR, RCC_APB2ENR_ADC1EN); }
         // delay after an RCC peripheral clock enabling
         delay();
     }
