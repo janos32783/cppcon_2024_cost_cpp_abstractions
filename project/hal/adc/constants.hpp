@@ -156,8 +156,7 @@ concept is_valid_sample_time_cycle = (
     (cycle == sample_time_cycles::cycles_239_5)
 );
 
-
-
+// config struct
 
 struct AdcInitConfig {
     clock_prescalers clock_prescaler { clock_prescalers::async_div_1 };
@@ -188,6 +187,38 @@ concept is_valid_adc_init_conf = (
     is_valid_overrun_behavior<conf.overrun_behavior> &&
     is_valid_sample_time_cycle<conf.sample_time_cycle>
 );
+
+// states
+
+enum class states {
+    reset,
+    ready,
+    busy_internal,
+    timeout,
+    internal_error,
+    config_error,
+    dma_error,
+    busy,
+    end_of_conversion,
+    overrun,
+    end_of_sampling,
+    inj_busy,
+    inj_end_of_conversion,
+    inj_queue_overflow,
+    watchdog_1,
+    watchdog_2,
+    watchdog_3,
+    multimode_slave
+};
+
+// errors
+
+enum class error_codes {
+    none,
+    internal_error,
+    overrun_error,
+    dma_error
+};
 
 } /* namespace adc */
 } /* namespace hal */
