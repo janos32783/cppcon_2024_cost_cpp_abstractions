@@ -21,10 +21,10 @@ consteval std::uint32_t instance_to_base_address () {
 }
 
 // adc clock prescaler
-enum class clock_prescalers {
-    async_div_1,
-    sync_div_2,
-    sync_div_4
+enum class clock_prescalers : std::uint32_t {
+    async_div_1 = 0x00000000U,
+    sync_div_2 = ADC_CFGR2_CKMODE_0,
+    sync_div_4 = ADC_CFGR2_CKMODE_1
 };
 
 template <clock_prescalers presc>
@@ -35,11 +35,11 @@ concept is_valid_clock_prescaler = (
 );
 
 // adc resolution
-enum class resolutions {
-    res_12_bit,
-    res_10_bit,
-    res_8_bit,
-    res_6_bit
+enum class resolutions : std::uint32_t {
+    res_12_bit = 0x00000000U,
+    res_10_bit = ADC_CFGR1_RES_0,
+    res_8_bit = ADC_CFGR1_RES_1,
+    res_6_bit = ADC_CFGR1_RES
 };
 
 template <resolutions res>
@@ -86,13 +86,25 @@ concept is_valid_eoc_selection = (
     (eoc == eoc_selections::sequential)
 );
 
+// conversion mode
+enum class conversion_modes {
+    continuous,
+    discontinuous
+};
+
+template <conversion_modes conv>
+concept is_valid_conversion_mode = (
+    (conv == conversion_modes::continuous) ||
+    (conv == conversion_modes::discontinuous)
+);
+
 // external trigger
-enum class external_triggers {
-    t1_trgo,
-    t1_cc4,
-    t3_trgo,
-    software,
-    t15_trgo
+enum class external_triggers : std::uint32_t {
+    t1_trgo = 0x00000000U,
+    t1_cc4 = ADC_CFGR1_EXTSEL_0,
+    t3_trgo = ADC_CFGR1_EXTSEL_1 | ADC_CFGR1_EXTSEL_0,
+    software = ADC_CFGR1_EXTSEL + 1U,
+    t15_trgo = ADC_CFGR1_EXTSEL_2
 };
 
 template <external_triggers trigger>
@@ -105,11 +117,11 @@ concept is_valid_external_trigger = (
 );
 
 // external trigger edge
-enum class external_trigger_edges {
-    none,
-    rising,
-    falling,
-    rising_falling
+enum class external_trigger_edges : std::uint32_t {
+    none = 0x00000000U,
+    rising = ADC_CFGR1_EXTEN_0,
+    falling = ADC_CFGR1_EXTEN_1,
+    rising_falling = ADC_CFGR1_EXTEN
 };
 
 template <external_trigger_edges edge>
@@ -133,15 +145,15 @@ concept is_valid_overrun_behavior = (
 );
 
 // sample time
-enum class sample_time_cycles {
-    cycles_1_5,
-    cycles_7_5,
-    cycles_13_5,
-    cycles_28_5,
-    cycles_41_5,
-    cycles_55_5,
-    cycles_71_5,
-    cycles_239_5
+enum class sample_time_cycles : std::uint32_t {
+    cycles_1_5 = 0x00000000U,
+    cycles_7_5 = ADC_SMPR_SMP_0,
+    cycles_13_5 = ADC_SMPR_SMP_1,
+    cycles_28_5 = ADC_SMPR_SMP_1 | ADC_SMPR_SMP_0,
+    cycles_41_5 = ADC_SMPR_SMP_2,
+    cycles_55_5 = ADC_SMPR_SMP_2 | ADC_SMPR_SMP_0,
+    cycles_71_5 = ADC_SMPR_SMP_2 | ADC_SMPR_SMP_1,
+    cycles_239_5 = ADC_SMPR_SMP
 };
 
 template <sample_time_cycles cycle>
@@ -166,8 +178,7 @@ struct AdcInitConfig {
     eoc_selections eoc_selection { eoc_selections::single };
     bool low_power_auto_wait_enabled { false };
     bool low_power_auto_power_off_enabled { false };
-    bool continuous_conv_mode_enabled { false };
-    bool discontinuous_conv_mode_enabled { false };
+    conversion_modes conversion_mode { conversion_modes::continuous };
     external_triggers external_trigger { external_triggers::t1_trgo };
     external_trigger_edges external_trigger_edge { external_trigger_edges::none };
     bool dma_continuous_request_enabled { false };
@@ -182,6 +193,7 @@ concept is_valid_adc_init_conf = (
     is_valid_data_alignment<conf.data_alignment> &&
     is_valid_scan_direction<conf.scan_direction> &&
     is_valid_eoc_selection<conf.eoc_selection> &&
+    is_valid_conversion_mode<conf.conversion_mode> &&
     is_valid_external_trigger<conf.external_trigger> &&
     is_valid_external_trigger_edge<conf.external_trigger_edge> &&
     is_valid_overrun_behavior<conf.overrun_behavior> &&
@@ -190,6 +202,28 @@ concept is_valid_adc_init_conf = (
 
 // states
 
+struct AdcState {
+    bool reset { true };
+    bool ready { false };
+    bool busy_internal { false };
+    bool timeout { false };
+    bool internal_error { false };
+    bool config_error { false };
+    bool dma_error { false };
+    bool busy { false };
+    bool end_of_conversion { false };
+    bool overrun { false };
+    bool end_of_sampling { false };
+    bool inj_busy { false };
+    bool inj_end_of_conversion { false };
+    bool inj_queue_overflow { false };
+    bool watchdog_1 { false };
+    bool watchdog_2 { false };
+    bool watchdog_3 { false };
+    bool multimode_slave { false };
+};
+
+/*
 enum class states {
     reset,
     ready,
@@ -210,6 +244,7 @@ enum class states {
     watchdog_3,
     multimode_slave
 };
+*/
 
 // errors
 

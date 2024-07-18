@@ -137,27 +137,20 @@ void init_gpio () {
 }
 
 void init_adc () {
-/*
-struct AdcInitConfig {
-    clock_prescalers clock_prescaler { clock_prescalers::async_div_1 };
-    resolutions resolution { resolutions::res_12_bit };
-    data_alignments data_alignment { data_alignments::right };
-    scan_directions scan_direction { scan_directions::forward };
-    eoc_selections eoc_selection { eoc_selections::single };
-    bool low_power_auto_wait_enabled { false };
-    bool low_power_auto_power_off_enabled { false };
-    bool continuous_conv_mode_enabled { false };
-    bool discontinuous_conv_mode_enabled { false };
-    external_triggers external_trigger { external_triggers::t1_trgo };
-    external_trigger_edges external_trigger_edge { external_trigger_edges::none };
-    bool dma_continuous_request_enabled { false };
-    overrun_behaviors overrun_behavior { overrun_behaviors::overwrite };
-    sample_time_cycles sample_time_cycle { sample_time_cycles::cycles_1_5 };
-};
-*/
-
     constexpr hal::adc::AdcInitConfig conf {
-
+        .clock_prescaler = hal::adc::clock_prescalers::async_div_1,
+        .resolution = hal::adc::resolutions::res_8_bit,
+        .data_alignment = hal::adc::data_alignments::right,
+        .scan_direction = hal::adc::scan_directions::forward,
+        .eoc_selection = hal::adc::eoc_selections::single,
+        .low_power_auto_wait_enabled = false,
+        .low_power_auto_power_off_enabled = false,
+        .conversion_mode = hal::adc::conversion_modes::continuous,
+        .external_trigger = hal::adc::external_triggers::software,
+        .external_trigger_edge = hal::adc::external_trigger_edges::none,
+        .dma_continuous_request_enabled = false,
+        .overrun_behavior = hal::adc::overrun_behaviors::preserve,
+        .sample_time_cycle = hal::adc::sample_time_cycles::cycles_1_5
     };
     ADC_1::init<conf, hal::gpio::ports::port_a, hal::gpio::pins::pin_06, hal::gpio::pins::pin_07>();
 }
