@@ -36,4 +36,9 @@ static inline hal_error init () {
     return hal_error::ok;
 }
 
+static inline void delay_ms (std::uint32_t delay) {
+    auto start = systick::CSysTick::now();
+    while (start + delay < systick::CSysTick::now()) {}
+}
+
 } /* namespace hal */

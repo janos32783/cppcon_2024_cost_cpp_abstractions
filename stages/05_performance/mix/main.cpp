@@ -53,11 +53,6 @@ constexpr hal::rcc::ClkInitConfig clock_config {
 
 constexpr std::uint32_t flash_latency { 0 };
 
-void delay (int cycles) {
-    volatile int i;
-    for (i = 0; i < cycles;) { i = i + 1; }
-}
-
 GPIO_TypeDef* ports [8] = { GPIOB, GPIOB, GPIOB, GPIOB, GPIOB, GPIOA, GPIOA, GPIOA };
 uint16_t pins [8] = { GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_4 };
 void set_leds (uint32_t val) {
@@ -86,6 +81,7 @@ int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
     }
+    
     init_gpio();
     init_adc();
     MX_TIM1_Init();
@@ -93,8 +89,6 @@ int main (void) {
     MX_USART2_UART_Init();
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
-    //gpio.configure<hal::gpio::modes::output>();
-
     drv::CLed<decltype(gpio)> led { &gpio };
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -102,8 +96,6 @@ int main (void) {
     {
         __HAL_TIM_SET_COUNTER(&htim1, 0);
         HAL_TIM_Base_Start(&htim1);
-
-        // hal::adc::CAdc adc1;
 
         ADC1->CHSELR = 0b0000000001000000;
         select_adc_channel(ADC_CHANNEL_6);
@@ -113,7 +105,7 @@ int main (void) {
         set_leds(raw6);
         HAL_ADC_Stop(&hadc);
 
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        led.toggle();
 
         ADC1->CHSELR = 0b0000000010000000;
         select_adc_channel(ADC_CHANNEL_7);
@@ -123,7 +115,7 @@ int main (void) {
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
         HAL_ADC_Stop(&hadc);
 
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        led.toggle();
 
         HAL_TIM_Base_Stop(&htim1);
         uint32_t time_taken = __HAL_TIM_GET_COUNTER(&htim1);
@@ -131,10 +123,7 @@ int main (void) {
         snprintf(msg, sizeof(msg), "Time taken: %lu ticks\r\n", time_taken);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-        HAL_Delay(1000);
-
-        led.toggle();
-        delay(200000);
+        hal::delay_ms(1000);
     }
 }
 
