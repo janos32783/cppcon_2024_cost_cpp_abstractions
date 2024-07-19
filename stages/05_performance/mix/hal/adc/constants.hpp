@@ -255,5 +255,73 @@ enum class error_codes {
     dma_error
 };
 
+// channels
+enum class channels {
+    channel_0  = ADC_CHSELR_CHSEL0,
+    channel_1  = ADC_CHSELR_CHSEL1,
+    channel_2  = ADC_CHSELR_CHSEL2,
+    channel_3  = ADC_CHSELR_CHSEL3,
+    channel_4  = ADC_CHSELR_CHSEL4,
+    channel_5  = ADC_CHSELR_CHSEL5,
+    channel_6  = ADC_CHSELR_CHSEL6,
+    channel_7  = ADC_CHSELR_CHSEL7,
+    channel_8  = ADC_CHSELR_CHSEL8,
+    channel_9  = ADC_CHSELR_CHSEL9,
+    channel_10 = ADC_CHSELR_CHSEL10,
+    channel_11 = ADC_CHSELR_CHSEL11,
+    channel_12 = ADC_CHSELR_CHSEL12,
+    channel_13 = ADC_CHSELR_CHSEL13,
+    channel_14 = ADC_CHSELR_CHSEL14,
+    channel_15 = ADC_CHSELR_CHSEL15,
+    channel_16 = ADC_CHSELR_CHSEL16,
+    channel_17 = ADC_CHSELR_CHSEL17
+};
+
+template <channels ch>
+concept is_valid_channel = (
+    (ch == channels::channel_0 ) ||
+    (ch == channels::channel_1 ) ||
+    (ch == channels::channel_2 ) ||
+    (ch == channels::channel_3 ) ||
+    (ch == channels::channel_4 ) ||
+    (ch == channels::channel_5 ) ||
+    (ch == channels::channel_6 ) ||
+    (ch == channels::channel_7 ) ||
+    (ch == channels::channel_8 ) ||
+    (ch == channels::channel_9 ) ||
+    (ch == channels::channel_10) ||
+    (ch == channels::channel_11) ||
+    (ch == channels::channel_12) ||
+    (ch == channels::channel_13) ||
+    (ch == channels::channel_14) ||
+    (ch == channels::channel_15) ||
+    (ch == channels::channel_16) ||
+    (ch == channels::channel_17)
+);
+
+// ranks
+
+enum class ranks {
+    channel_number = 0x00001000U,
+    none = 0x00001001U
+};
+
+template <ranks rank>
+concept is_valid_rank = (
+    (rank == ranks::channel_number) ||
+    (rank == ranks::none)
+);
+
+struct ChannelConfig {
+    channels channel { channels::channel_0 };
+    ranks rank { ranks::none };
+};
+
+template <ChannelConfig conf>
+concept is_valid_channel_conf = (
+    is_valid_channel<conf.channel> &&
+    is_valid_rank<conf.rank>
+);
+
 } /* namespace adc */
 } /* namespace hal */
