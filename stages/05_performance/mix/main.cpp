@@ -93,7 +93,7 @@ int main (void) {
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw6 = HAL_ADC_GetValue(&hadc);
         set_leds(raw6);
-        HAL_ADC_Stop(&hadc);
+        ADC_1::stop();
 
         led.toggle();
 
@@ -102,7 +102,7 @@ int main (void) {
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw7 = HAL_ADC_GetValue(&hadc);
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
-        HAL_ADC_Stop(&hadc);
+        ADC_1::stop();
 
         led.toggle();
 

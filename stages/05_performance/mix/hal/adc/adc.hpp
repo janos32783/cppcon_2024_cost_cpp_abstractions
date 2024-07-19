@@ -39,6 +39,10 @@ private:
         return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADCAL | ADC_CR_ADSTP | ADC_CR_ADSTART | ADC_CR_ADDIS | ADC_CR_ADEN);
     }
 
+    static inline bool can_be_disabled () {
+        return CRegister::get_bits(&m_adc->CR, ADC_CR_ADSTART | ADC_CR_ADEN) == ADC_CR_ADEN;
+    }
+
     template <AdcInitConfig conf>
     static consteval std::uint32_t calculate_cfgr1_set_bits () {
         std::uint32_t cfgr1_set_bits = 0;
@@ -168,6 +172,50 @@ public:
         return hal_error::ok;
     }
 
+    static inline hal_error disable () {
+        if (is_enabled()) {
+            if (can_be_disabled()) {
+                CRegister::set_bits(&m_adc->CR, ADC_CR_ADDIS);
+                CRegister::set(&m_adc->ISR, ADC_FLAG_EOSMP | ADC_FLAG_RDY);
+            }
+            else {
+                m_state.internal_error = true;
+                m_error_code = error_codes::internal_error;
+                return hal_error::error;
+            }
+            auto tickstart = systick::CSysTick::now();
+            while (CRegister::is_set(&m_adc->CR, ADC_CR_ADEN)) {
+                if ((systick::CSysTick::now() - tickstart) > disable_timeout_ms) {
+                    if (CRegister::is_set(&m_adc->CR, ADC_CR_ADEN)) {
+                        m_state.internal_error = true;
+                        m_error_code = error_codes::internal_error;
+                        return hal_error::error;
+                    }
+                }
+            }
+        }
+        return hal_error::ok;
+    }
+
+    static inline hal_error stop_conversion () {
+        if (is_conversion_ongoing()) {
+            if (CRegister::is_set(&m_adc->CR, ADC_CR_ADSTART) && CRegister::is_cleared(&m_adc->CR, ADC_CR_ADDIS)) {
+                CRegister::set_bits(&m_adc->CR, ADC_CR_ADSTP);
+            }
+            auto tickstart = systick::CSysTick::now();
+            while (CRegister::is_set(&m_adc->CR, ADC_CR_ADSTART)) {
+                if ((systick::CSysTick::now() - tickstart) > stop_conversion_timeout_ms) {
+                    if (CRegister::is_set(&m_adc->CR, ADC_CR_ADSTART)) {
+                        m_state.internal_error = true;
+                        m_error_code = error_codes::internal_error;
+                        return hal_error::error;
+                    }
+                }
+            }
+        }
+        return hal_error::ok;
+    }
+
     static inline hal_error start () {
         hal_error ret = hal_error::ok;
         if (!is_conversion_ongoing()) {
@@ -187,7 +235,7 @@ public:
                     m_state.busy = true;
                     m_error_code = error_codes::none;
                     m_locked = false;
-                    CRegister::set_bits(&m_adc->ISR, ADC_FLAG_EOC | ADC_FLAG_EOS | ADC_FLAG_OVR);
+                    CRegister::set(&m_adc->ISR, ADC_FLAG_EOC | ADC_FLAG_EOS | ADC_FLAG_OVR);
                     CRegister::set_bits(&m_adc->CR, ADC_CR_ADSTART);
                 }
             }
@@ -195,6 +243,26 @@ public:
         else {
             ret = hal_error::busy;
         }
+        return ret;
+    }
+
+    static inline hal_error stop () {
+        hal_error ret = hal_error::ok;
+        if (m_locked) {
+            ret = hal_error::busy;
+        }
+        else {
+            m_locked = true;
+            ret = stop_conversion();
+            if (ret == hal_error::ok) {
+                ret = disable();
+                if (ret == hal_error::ok) {
+                    m_state.busy = false;
+                    m_state.ready = true;
+                }
+            }
+        }
+        m_locked = false;
         return ret;
     }
 };

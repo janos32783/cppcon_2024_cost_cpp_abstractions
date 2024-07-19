@@ -7,6 +7,7 @@ namespace adc {
 
 constexpr std::uint32_t enable_timeout_ms { 2 };
 constexpr std::uint32_t disable_timeout_ms { 2 };
+constexpr std::uint32_t stop_conversion_timeout_ms { 2 };
 constexpr std::uint32_t stable_adc_delay_us { 1 };
 
 enum class adc_instances {
