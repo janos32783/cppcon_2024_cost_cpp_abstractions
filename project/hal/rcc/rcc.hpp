@@ -187,12 +187,6 @@ public:
             CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->CFGR, static_cast<std::uint32_t>(conf.hclk_div), RCC_CFGR_PPRE);
         }
   
-        /* Update the SystemCoreClock global variable */
-        //SystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> RCC_CFGR_HPRE_BITNUMBER];
-
-        /* Configure the source of time base considering new system clocks settings*/
-        //HAL_InitTick (TICK_INT_PRIORITY);
-  
         return hal_error::ok;
     }
 
