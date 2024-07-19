@@ -12,7 +12,6 @@ UART_HandleTypeDef huart2;
 
 void error_handler();
 void init_gpio ();
-void init_adc ();
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
@@ -50,6 +49,22 @@ constexpr hal::rcc::ClkInitConfig clock_config {
     .hclk_div = hal::rcc::hclk_dividers::div1
 };
 
+constexpr hal::adc::AdcInitConfig adc_config {
+    .clock_prescaler = hal::adc::clock_prescalers::async_div_1,
+    .resolution = hal::adc::resolutions::res_8_bit,
+    .data_alignment = hal::adc::data_alignments::right,
+    .scan_direction = hal::adc::scan_directions::forward,
+    .eoc_selection = hal::adc::eoc_selections::single,
+    .low_power_auto_wait_enabled = false,
+    .low_power_auto_power_off_enabled = false,
+    .conversion_mode = hal::adc::conversion_modes::continuous,
+    .external_trigger = hal::adc::external_triggers::software,
+    .external_trigger_edge = hal::adc::external_trigger_edges::none,
+    .dma_continuous_request_enabled = false,
+    .overrun_behavior = hal::adc::overrun_behaviors::preserve,
+    .sample_time_cycle = hal::adc::sample_time_cycles::cycles_1_5
+};
+
 constexpr std::uint32_t flash_latency { 0 };
 
 GPIO_TypeDef* ports [8] = { GPIOB, GPIOB, GPIOB, GPIOB, GPIOB, GPIOA, GPIOA, GPIOA };
@@ -65,9 +80,7 @@ void set_leds (uint32_t val) {
 	}
 }
 
-using ADC_1 = hal::adc::CAdc<hal::adc::adc_instances::adc1>;
-
-// record : 13696
+// record : 13456
 
 int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
@@ -75,7 +88,8 @@ int main (void) {
     }
 
     init_gpio();
-    init_adc();
+    hal::adc::CAdc<hal::adc::adc_instances::adc1, adc_config> adc1 {};
+    adc1.init<hal::gpio::ports::port_a, hal::gpio::pins::pin_06, hal::gpio::pins::pin_07>();
     MX_TIM1_Init();
     MX_TIM3_Init();
     MX_USART2_UART_Init();
@@ -89,21 +103,21 @@ int main (void) {
         __HAL_TIM_SET_COUNTER(&htim1, 0);
         HAL_TIM_Base_Start(&htim1);
 
-        ADC_1::select_channel<hal::adc::channels::channel_6>();
-        ADC_1::start();
-        ADC_1::poll_for_conversion(HAL_MAX_DELAY);
-        uint32_t raw6 = ADC_1::get();
+        adc1.select_channel<hal::adc::channels::channel_6>();
+        adc1.start();
+        adc1.poll_for_conversion(HAL_MAX_DELAY);
+        uint32_t raw6 = adc1.get();
         set_leds(raw6);
-        ADC_1::stop();
+        adc1.stop();
 
         led.toggle();
 
-        ADC_1::select_channel<hal::adc::channels::channel_7>();
-        ADC_1::start();
-        ADC_1::poll_for_conversion(HAL_MAX_DELAY);
-        uint32_t raw7 = ADC_1::get();
+        adc1.select_channel<hal::adc::channels::channel_7>();
+        adc1.start();
+        adc1.poll_for_conversion(HAL_MAX_DELAY);
+        uint32_t raw7 = adc1.get();
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
-        ADC_1::stop();
+        adc1.stop();
 
         led.toggle();
 
@@ -185,25 +199,6 @@ void init_gpio () {
     >();
 
     hal::gpio::CPort<hal::gpio::ports::port_c>::configure_pins<gpio_init, hal::gpio::pins::pin_13>();
-}
-
-void init_adc () {
-    constexpr hal::adc::AdcInitConfig conf {
-        .clock_prescaler = hal::adc::clock_prescalers::async_div_1,
-        .resolution = hal::adc::resolutions::res_8_bit,
-        .data_alignment = hal::adc::data_alignments::right,
-        .scan_direction = hal::adc::scan_directions::forward,
-        .eoc_selection = hal::adc::eoc_selections::single,
-        .low_power_auto_wait_enabled = false,
-        .low_power_auto_power_off_enabled = false,
-        .conversion_mode = hal::adc::conversion_modes::continuous,
-        .external_trigger = hal::adc::external_triggers::software,
-        .external_trigger_edge = hal::adc::external_trigger_edges::none,
-        .dma_continuous_request_enabled = false,
-        .overrun_behavior = hal::adc::overrun_behaviors::preserve,
-        .sample_time_cycle = hal::adc::sample_time_cycles::cycles_1_5
-    };
-    ADC_1::init<conf, hal::gpio::ports::port_a, hal::gpio::pins::pin_06, hal::gpio::pins::pin_07>();
 }
 
 static void MX_TIM1_Init(void)

@@ -10,21 +10,17 @@
 namespace hal {
 namespace adc {
 
-template <adc_instances instance>
-requires (is_valid_adc_instance<instance>)
+template <adc_instances instance, AdcInitConfig conf>
+requires (is_valid_adc_instance<instance> && is_valid_adc_init_conf<conf>)
 class CAdc {
 private:
-    static inline ADC_TypeDef* m_adc { reinterpret_cast<ADC_TypeDef*>(instance_to_base_address<instance>()) };
-    static inline ADC_Common_TypeDef* m_adc_common { reinterpret_cast<ADC_Common_TypeDef*>(ADC_BASE) };
-    static inline AdcState m_state {};
-    static inline error_codes m_error_code { error_codes::none };
-    static inline bool m_locked { false };
-    static inline bool m_low_power_auto_off_enabled { false };
-    static inline eoc_selections m_eoc_selection { eoc_selections::single };
-    static inline conversion_modes m_conversion_mode { conversion_modes::continuous };
-    static inline bool m_low_power_auto_wait_enabled { false };
+    ADC_TypeDef* m_adc { reinterpret_cast<ADC_TypeDef*>(instance_to_base_address<instance>()) };
+    ADC_Common_TypeDef* m_adc_common { reinterpret_cast<ADC_Common_TypeDef*>(ADC_BASE) };
+    AdcState m_state {};
+    error_codes m_error_code { error_codes::none };
+    bool m_locked { false };
 
-    static inline bool is_enabled () {
+    inline bool is_enabled () {
         if (CRegister::is_set(&m_adc->CR, ADC_CR_ADEN)) {
             if (CRegister::is_cleared(&m_adc->CR, ADC_CR_ADDIS)) {
                 if (CRegister::is_set(&m_adc->ISR, ADC_ISR_ADRDY)) {
@@ -38,15 +34,14 @@ private:
         return false;
     }
 
-    static inline bool can_be_enabled () {
+    inline bool can_be_enabled () {
         return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADCAL | ADC_CR_ADSTP | ADC_CR_ADSTART | ADC_CR_ADDIS | ADC_CR_ADEN);
     }
 
-    static inline bool can_be_disabled () {
+    inline bool can_be_disabled () {
         return CRegister::get_bits(&m_adc->CR, ADC_CR_ADSTART | ADC_CR_ADEN) == ADC_CR_ADEN;
     }
 
-    template <AdcInitConfig conf>
     static consteval std::uint32_t calculate_cfgr1_set_bits () {
         std::uint32_t cfgr1_set_bits = 0;
         if constexpr (conf.low_power_auto_wait_enabled) { cfgr1_set_bits |= ADC_CFGR1_WAIT; }
@@ -77,13 +72,13 @@ private:
                ADC_CFGR1_DMACFG;
     }
 
-    static inline bool is_conversion_ongoing () {
+    inline bool is_conversion_ongoing () {
         return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADSTART);
     }
 public:
-    template <AdcInitConfig conf, gpio::ports port, gpio::pins... pin>
-    requires (is_valid_adc_init_conf<conf> && gpio::is_valid_port<port> && gpio::are_valid_pins<pin...>)
-    static inline hal_error init () {
+    template <gpio::ports port, gpio::pins... pin>
+    requires (gpio::is_valid_port<port> && gpio::are_valid_pins<pin...>)
+    inline hal_error init () {
         hal_error ret = hal_error::ok;
         if (m_state.reset) {
             m_error_code = error_codes::none;
@@ -106,15 +101,11 @@ public:
                 CRegister::set(&m_adc->CFGR1, static_cast<std::uint32_t>(conf.resolution), ADC_CFGR1_RES);
                 CRegister::set(&m_adc->CFGR2, static_cast<std::uint32_t>(conf.clock_prescaler), ADC_CFGR2_CKMODE);
             }
-            CRegister::set(&m_adc->CFGR1, calculate_cfgr1_set_bits<conf>(), get_cfgr1_clear_bitmask());
+            CRegister::set(&m_adc->CFGR1, calculate_cfgr1_set_bits(), get_cfgr1_clear_bitmask());
             CRegister::set(&m_adc->SMPR, static_cast<std::uint32_t>(conf.sample_time_cycle), ADC_SMPR_SMP);
-            m_low_power_auto_off_enabled = conf.low_power_auto_power_off_enabled;
-            m_eoc_selection = conf.eoc_selection;
-            m_conversion_mode = conf.conversion_mode;
-            m_low_power_auto_wait_enabled = conf.low_power_auto_wait_enabled;
             std::uint32_t cfgr1_val = CRegister::get(&m_adc->CFGR1);
             cfgr1_val &= ~(ADC_CFGR1_AWDCH | ADC_CFGR1_AWDEN | ADC_CFGR1_AWDSGL | ADC_CFGR1_RES);
-            if (cfgr1_val == calculate_cfgr1_set_bits<conf>()) {
+            if (cfgr1_val == calculate_cfgr1_set_bits()) {
                 m_error_code = error_codes::none;
                 m_state.busy_internal = false;
                 m_state.ready = true;
@@ -135,7 +126,7 @@ public:
 
     template <channels channel>
     requires (is_valid_channel<channel>)
-    static inline hal_error select_channel () {
+    inline hal_error select_channel () {
         hal_error ret = hal_error::ok;
         if (m_locked) {
             ret = hal_error::busy;
@@ -155,7 +146,7 @@ public:
         return ret;
     }
 
-    static inline hal_error enable () {
+    inline hal_error enable () {
         if (!is_enabled()) {
             if (!can_be_enabled()) {
                 m_state.internal_error = true;
@@ -178,7 +169,7 @@ public:
         return hal_error::ok;
     }
 
-    static inline hal_error disable () {
+    inline hal_error disable () {
         if (is_enabled()) {
             if (can_be_disabled()) {
                 CRegister::set_bits(&m_adc->CR, ADC_CR_ADDIS);
@@ -203,7 +194,7 @@ public:
         return hal_error::ok;
     }
 
-    static inline hal_error stop_conversion () {
+    inline hal_error stop_conversion () {
         if (is_conversion_ongoing()) {
             if (CRegister::is_set(&m_adc->CR, ADC_CR_ADSTART) && CRegister::is_cleared(&m_adc->CR, ADC_CR_ADDIS)) {
                 CRegister::set_bits(&m_adc->CR, ADC_CR_ADSTP);
@@ -222,7 +213,7 @@ public:
         return hal_error::ok;
     }
 
-    static inline hal_error start () {
+    inline hal_error start () {
         hal_error ret = hal_error::ok;
         if (!is_conversion_ongoing()) {
             if (m_locked) {
@@ -230,7 +221,7 @@ public:
             }
             else {
                 m_locked = true;
-                if (!m_low_power_auto_off_enabled) {
+                if constexpr (!conf.low_power_auto_power_off_enabled) {
                     ret = enable();
                 }
                 if (ret == hal_error::ok) {
@@ -252,7 +243,7 @@ public:
         return ret;
     }
 
-    static inline hal_error stop () {
+    inline hal_error stop () {
         hal_error ret = hal_error::ok;
         if (m_locked) {
             ret = hal_error::busy;
@@ -272,9 +263,9 @@ public:
         return ret;
     }
 
-    static inline hal_error poll_for_conversion (std::uint32_t timeout) {
+    inline hal_error poll_for_conversion (std::uint32_t timeout) {
         std::uint32_t eoc_flag { 0 };
-        if (m_eoc_selection == eoc_selections::sequential) {
+        if constexpr (conf.eoc_selection == eoc_selections::sequential) {
             eoc_flag = ADC_FLAG_EOS;
         }
         else {
@@ -299,26 +290,28 @@ public:
             }
         }
         m_state.end_of_conversion = true;
-        if (CRegister::is_cleared(&m_adc->CFGR1, ADC_CFGR1_EXTEN) && (m_conversion_mode == conversion_modes::discontinuous)) {
-            if (CRegister::is_set(&m_adc->ISR, ADC_FLAG_EOS)) {
-                if (is_conversion_ongoing()) {
-                    CRegister::clear_bits(&m_adc->IER, ADC_IT_EOC | ADC_IT_EOS);
-                    m_state.busy = false;
-                    m_state.ready = true;
-                }
-                else {
-                    m_state.config_error = true;
-                    m_error_code = error_codes::internal_error;
+        if constexpr (conf.conversion_mode == conversion_modes::discontinuous) {
+            if (CRegister::is_cleared(&m_adc->CFGR1, ADC_CFGR1_EXTEN)) {
+                if (CRegister::is_set(&m_adc->ISR, ADC_FLAG_EOS)) {
+                    if (is_conversion_ongoing()) {
+                        CRegister::clear_bits(&m_adc->IER, ADC_IT_EOC | ADC_IT_EOS);
+                        m_state.busy = false;
+                        m_state.ready = true;
+                    }
+                    else {
+                        m_state.config_error = true;
+                        m_error_code = error_codes::internal_error;
+                    }
                 }
             }
         }
-        if (!m_low_power_auto_wait_enabled) {
+        if constexpr (!conf.low_power_auto_wait_enabled) {
             CRegister::set(&m_adc->ISR, ADC_FLAG_EOC | ADC_FLAG_EOS);
         }
         return hal_error::ok;
     }
 
-    static inline std::uint32_t get () {
+    inline std::uint32_t get () {
         return CRegister::get(&m_adc->DR);
     }
 };
