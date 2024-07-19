@@ -299,29 +299,5 @@ concept is_valid_channel = (
     (ch == channels::channel_17)
 );
 
-// ranks
-
-enum class ranks {
-    channel_number = 0x00001000U,
-    none = 0x00001001U
-};
-
-template <ranks rank>
-concept is_valid_rank = (
-    (rank == ranks::channel_number) ||
-    (rank == ranks::none)
-);
-
-struct ChannelConfig {
-    channels channel { channels::channel_0 };
-    ranks rank { ranks::none };
-};
-
-template <ChannelConfig conf>
-concept is_valid_channel_conf = (
-    is_valid_channel<conf.channel> &&
-    is_valid_rank<conf.rank>
-);
-
 } /* namespace adc */
 } /* namespace hal */

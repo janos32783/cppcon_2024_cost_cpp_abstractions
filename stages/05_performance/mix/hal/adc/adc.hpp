@@ -63,6 +63,10 @@ private:
                ADC_CFGR1_SCANDIR |
                ADC_CFGR1_DMACFG;
     }
+
+    static inline bool is_conversion_ongoing () {
+        return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADSTART);
+    }
 public:
     template <AdcInitConfig conf, gpio::ports port, gpio::pins... pin>
     requires (is_valid_adc_init_conf<conf> && gpio::is_valid_port<port> && gpio::are_valid_pins<pin...>)
@@ -90,7 +94,7 @@ public:
                 CRegister::set(&m_adc->CFGR2, static_cast<std::uint32_t>(conf.clock_prescaler), ADC_CFGR2_CKMODE);
             }
             CRegister::set(&m_adc->CFGR1, calculate_cfgr1_set_bits<conf>(), get_cfgr1_clear_bitmask());
-            CRegister::set(&m_adc->CFGR1, static_cast<std::uint32_t>(conf.sample_time_cycle), ADC_SMPR_SMP);
+            CRegister::set(&m_adc->SMPR, static_cast<std::uint32_t>(conf.sample_time_cycle), ADC_SMPR_SMP);
             std::uint32_t cfgr1_val = CRegister::get(&m_adc->CFGR1);
             cfgr1_val &= ~(ADC_CFGR1_AWDCH | ADC_CFGR1_AWDEN | ADC_CFGR1_AWDSGL | ADC_CFGR1_RES);
             if (cfgr1_val == calculate_cfgr1_set_bits<conf>()) {
@@ -108,6 +112,28 @@ public:
         else {
             m_state.internal_error = true;
             ret = hal_error::error;
+        }
+        return ret;
+    }
+
+    template <channels channel>
+    requires (is_valid_channel<channel>)
+    static inline hal_error select_channel () {
+        hal_error ret = hal_error::ok;
+        if (m_locked) {
+            ret = hal_error::busy;
+        }
+        else {
+            m_locked = true;
+            if (!is_conversion_ongoing()) {
+                CRegister::clear_bits(&m_adc->CHSELR, ADC_CHSELR_CHSEL);
+                CRegister::set_bits(&m_adc->CHSELR, static_cast<std::uint32_t>(channel));
+            }
+            else {
+                m_state.config_error = true;
+                ret = hal_error::error;
+            }
+            m_locked = false;
         }
         return ret;
     }

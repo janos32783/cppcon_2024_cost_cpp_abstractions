@@ -65,15 +65,6 @@ void set_leds (uint32_t val) {
 		}
 	}
 }
-void select_adc_channel(uint32_t channel) {
-    ADC_ChannelConfTypeDef sConfig = {0};
-    sConfig.Channel = channel;
-    sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-    if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK) {
-        Error_Handler();
-    }
-}
 
 using ADC_1 = hal::adc::CAdc<hal::adc::adc_instances::adc1>;
 
@@ -81,7 +72,7 @@ int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
     }
-    
+
     init_gpio();
     init_adc();
     MX_TIM1_Init();
@@ -97,8 +88,7 @@ int main (void) {
         __HAL_TIM_SET_COUNTER(&htim1, 0);
         HAL_TIM_Base_Start(&htim1);
 
-        ADC1->CHSELR = 0b0000000001000000;
-        select_adc_channel(ADC_CHANNEL_6);
+        ADC_1::select_channel<hal::adc::channels::channel_6>();
         HAL_ADC_Start(&hadc);
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw6 = HAL_ADC_GetValue(&hadc);
@@ -107,8 +97,7 @@ int main (void) {
 
         led.toggle();
 
-        ADC1->CHSELR = 0b0000000010000000;
-        select_adc_channel(ADC_CHANNEL_7);
+        ADC_1::select_channel<hal::adc::channels::channel_7>();
         HAL_ADC_Start(&hadc);
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw7 = HAL_ADC_GetValue(&hadc);
