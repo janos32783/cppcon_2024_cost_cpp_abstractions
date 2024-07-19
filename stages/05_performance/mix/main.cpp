@@ -68,6 +68,8 @@ void set_leds (uint32_t val) {
 
 using ADC_1 = hal::adc::CAdc<hal::adc::adc_instances::adc1>;
 
+// record : 13696
+
 int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
         error_handler();
@@ -90,7 +92,7 @@ int main (void) {
 
         ADC_1::select_channel<hal::adc::channels::channel_6>();
         ADC_1::start();
-        HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+        ADC_1::poll_for_conversion(HAL_MAX_DELAY);
         uint32_t raw6 = HAL_ADC_GetValue(&hadc);
         set_leds(raw6);
         ADC_1::stop();
@@ -99,7 +101,7 @@ int main (void) {
 
         ADC_1::select_channel<hal::adc::channels::channel_7>();
         ADC_1::start();
-        HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
+        ADC_1::poll_for_conversion(HAL_MAX_DELAY);
         uint32_t raw7 = HAL_ADC_GetValue(&hadc);
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
         ADC_1::stop();

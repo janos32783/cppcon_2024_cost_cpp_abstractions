@@ -20,6 +20,9 @@ private:
     static inline error_codes m_error_code { error_codes::none };
     static inline bool m_locked { false };
     static inline bool m_low_power_auto_off_enabled { false };
+    static inline eoc_selections m_eoc_selection { eoc_selections::single };
+    static inline conversion_modes m_conversion_mode { conversion_modes::continuous };
+    static inline bool m_low_power_auto_wait_enabled { false };
 
     static inline bool is_enabled () {
         if (CRegister::is_set(&m_adc->CR, ADC_CR_ADEN)) {
@@ -106,6 +109,9 @@ public:
             CRegister::set(&m_adc->CFGR1, calculate_cfgr1_set_bits<conf>(), get_cfgr1_clear_bitmask());
             CRegister::set(&m_adc->SMPR, static_cast<std::uint32_t>(conf.sample_time_cycle), ADC_SMPR_SMP);
             m_low_power_auto_off_enabled = conf.low_power_auto_power_off_enabled;
+            m_eoc_selection = conf.eoc_selection;
+            m_conversion_mode = conf.conversion_mode;
+            m_low_power_auto_wait_enabled = conf.low_power_auto_wait_enabled;
             std::uint32_t cfgr1_val = CRegister::get(&m_adc->CFGR1);
             cfgr1_val &= ~(ADC_CFGR1_AWDCH | ADC_CFGR1_AWDEN | ADC_CFGR1_AWDSGL | ADC_CFGR1_RES);
             if (cfgr1_val == calculate_cfgr1_set_bits<conf>()) {
@@ -264,6 +270,52 @@ public:
         }
         m_locked = false;
         return ret;
+    }
+
+    static inline hal_error poll_for_conversion (std::uint32_t timeout) {
+        std::uint32_t eoc_flag { 0 };
+        if (m_eoc_selection == eoc_selections::sequential) {
+            eoc_flag = ADC_FLAG_EOS;
+        }
+        else {
+            if (CRegister::is_set(&m_adc->CFGR1, ADC_CFGR1_DMAEN)) {
+                m_state.config_error = true;
+                m_locked = false;
+                return hal_error::error;
+            }
+            else {
+                eoc_flag = (ADC_FLAG_EOC | ADC_FLAG_EOS);
+            }
+        }
+        auto tickstart = systick::CSysTick::now();
+        while (CRegister::is_cleared(&m_adc->ISR, eoc_flag)) {
+            if (timeout == HAL_MAX_DELAY) { continue; } // infinite wait
+            if ((timeout == 0) || ((systick::CSysTick::now() - tickstart) > timeout)) {
+                if (CRegister::is_cleared(&m_adc->ISR, eoc_flag)) {
+                    m_state.timeout = true;
+                    m_locked = false;
+                    return hal_error::timeout;
+                }
+            }
+        }
+        m_state.end_of_conversion = true;
+        if (CRegister::is_cleared(&m_adc->CFGR1, ADC_CFGR1_EXTEN) && (m_conversion_mode == conversion_modes::discontinuous)) {
+            if (CRegister::is_set(&m_adc->ISR, ADC_FLAG_EOS)) {
+                if (is_conversion_ongoing()) {
+                    CRegister::clear_bits(&m_adc->IER, ADC_IT_EOC | ADC_IT_EOS);
+                    m_state.busy = false;
+                    m_state.ready = true;
+                }
+                else {
+                    m_state.config_error = true;
+                    m_error_code = error_codes::internal_error;
+                }
+            }
+        }
+        if (!m_low_power_auto_wait_enabled) {
+            CRegister::set(&m_adc->ISR, ADC_FLAG_EOC | ADC_FLAG_EOS);
+        }
+        return hal_error::ok;
     }
 };
 
