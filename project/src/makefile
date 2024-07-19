@@ -1,34 +1,62 @@
-STARTUP_FILE = startup
-MAIN = main
-INCLUDES = -I. -I.. -I../hal/CMSIS/Device/ST/STM32F0xx/Include -I../hal/CMSIS/Include
+include common.mk
+
+INCLUDES += -I../hal/STM32F0xx_HAL_Driver/Inc \
+            -I../hal/CMSIS/Device/ST/STM32F0xx/Include \
+			-I../hal/CMSIS/Include
+
+OBJS = main.o \
+       startup.o \
+       stm32f0xx_hal_msp.o \
+       stm32f0xx_it.o \
+       syscalls.o \
+       sysmem.o \
+       system_stm32f0xx.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_adc_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_adc.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_exti.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_gpio.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.o \
+       ../hal/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.o
+
+CXXFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC
+CFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC
+
+LINKER_SCRIPT = linker_script.ld
+ELF = main.elf
+BIN = main.bin
 
 all: prog
 
-prog:
-	arm-none-eabi-g++ -mcpu=cortex-m0 -c -specs=nano.specs -mfloat-abi=soft -mthumb -o $(STARTUP_FILE).o $(STARTUP_FILE).s
-	arm-none-eabi-g++ -mcpu=cortex-m0 -c -std=c++20 -Os -ffunction-sections -fdata-sections -Wall --specs=nano.specs -mfloat-abi=soft -mthumb $(INCLUDES) -o $(MAIN).o $(MAIN).cpp
-	arm-none-eabi-g++ -mcpu=cortex-m0 -o $(MAIN).elf $(MAIN).o $(STARTUP_FILE).o -T linker_script.ld --specs=nosys.specs --specs=nano.specs -mfloat-abi=soft -mthumb
-	arm-none-eabi-objcopy -O binary $(MAIN).elf $(MAIN).bin
+prog: $(OBJS)
+	$(CXX) $(LDFLAGS) -o $(ELF) $(OBJS) -T $(LINKER_SCRIPT)
+	$(OBJCOPY) -O binary $(ELF) $(BIN)
 
 objdump:
-	arm-none-eabi-objdump -h -S $(MAIN).elf
+	$(OBJDUMP) -h -S $(ELF)
 
 size:
-	arm-none-eabi-size $(MAIN).elf
+	$(SIZE) $(ELF)
 
 flash:
-	st-flash write $(MAIN).bin 0x08000000
+	$(STFLASH) write $(BIN) $(FLASHSTART)
 
 reset:
-	st-flash reset
+	$(STFLASH) reset
 
 clean:
-	@if [ -f $(MAIN).o ]; then rm $(MAIN).o; fi
-	@if [ -f $(MAIN).s ]; then rm $(MAIN).s; fi
-	@if [ -f $(STARTUP_FILE).o ]; then rm $(STARTUP_FILE).o; fi
-	@if [ -f $(MAIN).elf ]; then rm $(MAIN).elf; fi
-	@if [ -f $(MAIN).bin ]; then rm $(MAIN).bin; fi
-
-
-
-
+	@for obj in $(OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
+	@rm -rf $(ELF)
+	@rm -rf $(BIN)
