@@ -1,12 +1,16 @@
 #include "main.h"
+#include <stdio.h>
+#include <string.h>
 
 ADC_HandleTypeDef hadc;
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC_Init(void);
+static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
 
@@ -39,12 +43,18 @@ int main(void)
 
     MX_GPIO_Init();
     MX_ADC_Init();
+    MX_TIM1_Init();
     MX_TIM3_Init();
     MX_USART2_UART_Init();
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     while (1)
     {
+        __HAL_TIM_SET_COUNTER(&htim1, 0);
+        HAL_TIM_Base_Start(&htim1);
+
+        // hal::adc::CAdc adc1;
+
         ADC1->CHSELR = 0b0000000001000000;
         select_adc_channel(ADC_CHANNEL_6);
         HAL_ADC_Start(&hadc);
@@ -54,7 +64,6 @@ int main(void)
         HAL_ADC_Stop(&hadc);
 
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        HAL_Delay(100);
 
         ADC1->CHSELR = 0b0000000010000000;
         select_adc_channel(ADC_CHANNEL_7);
@@ -65,7 +74,14 @@ int main(void)
         HAL_ADC_Stop(&hadc);
 
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-        HAL_Delay(100);
+
+        HAL_TIM_Base_Stop(&htim1);
+        uint32_t time_taken = __HAL_TIM_GET_COUNTER(&htim1);
+        char msg[50] = {0};
+        snprintf(msg, sizeof(msg), "Time taken: %lu ticks\r\n", time_taken);
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+
+        HAL_Delay(1000);
     }
 }
 
@@ -114,6 +130,35 @@ static void MX_ADC_Init(void)
     hadc.Init.DMAContinuousRequests = DISABLE;
     hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     if (HAL_ADC_Init(&hadc) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+static void MX_TIM1_Init(void)
+{
+    TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+    TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+    htim1.Instance = TIM1;
+    htim1.Init.Prescaler = 0;
+    htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim1.Init.Period = 65535;
+    htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim1.Init.RepetitionCounter = 0;
+    htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
     {
         Error_Handler();
     }
@@ -224,5 +269,4 @@ void Error_Handler(void)
     while (1)
     {
     }
-    /* USER CODE END Error_Handler_Debug */
 }

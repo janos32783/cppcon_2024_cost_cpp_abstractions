@@ -7,19 +7,6 @@ namespace rcc {
 
 constexpr std::uint32_t HSI_FREQ { 8000000 };
 
-// in ms (milliseconds)
-constexpr std::uint32_t RCC_DBP_TIMEOUT_VALUE { 100 };
-constexpr std::uint32_t HSE_TIMEOUT_VALUE { 100 };
-constexpr std::uint32_t HSI_TIMEOUT_VALUE { 2 };
-constexpr std::uint32_t LSI_TIMEOUT_VALUE { 2 };
-constexpr std::uint32_t PLL_TIMEOUT_VALUE { 2 };
-constexpr std::uint32_t HSI14_TIMEOUT_VALUE { 2 };
-constexpr std::uint32_t LSE_STARTUP_TIMEOUT { 5000 };
-constexpr std::uint32_t CLOCKSWITCH_TIMEOUT_VALUE { 5000 };
-
-constexpr std::uint32_t RCC_PLLSOURCE_HSE = RCC_CFGR_PLLSRC_HSE_PREDIV;
-constexpr std::uint32_t RCC_PLLSOURCE_HSI = RCC_CFGR_PLLSRC_HSI_PREDIV;
-
 template <std::uint32_t calib>
 concept is_valid_calibration_value = (
     calib <= 0x1FU

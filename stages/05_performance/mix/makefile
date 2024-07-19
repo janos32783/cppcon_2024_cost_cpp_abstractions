@@ -33,7 +33,8 @@ OBJS = main.o \
        ../../hal/Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.o \
        ../../hal/Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.o
 
-CXXFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC
+CXXFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC \
+            -fno-exceptions
 CFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC -DCOMPILED_FOR_CPP
 
 LINKER_SCRIPT = ../../hal/STM32F030CCTX_FLASH.ld
