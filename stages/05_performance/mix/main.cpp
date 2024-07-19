@@ -6,7 +6,6 @@
 #include "hal/hal.hpp"
 #include "drv/led.hpp"
 
-ADC_HandleTypeDef hadc;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
@@ -93,7 +92,7 @@ int main (void) {
         ADC_1::select_channel<hal::adc::channels::channel_6>();
         ADC_1::start();
         ADC_1::poll_for_conversion(HAL_MAX_DELAY);
-        uint32_t raw6 = HAL_ADC_GetValue(&hadc);
+        uint32_t raw6 = ADC_1::get();
         set_leds(raw6);
         ADC_1::stop();
 
@@ -102,7 +101,7 @@ int main (void) {
         ADC_1::select_channel<hal::adc::channels::channel_7>();
         ADC_1::start();
         ADC_1::poll_for_conversion(HAL_MAX_DELAY);
-        uint32_t raw7 = HAL_ADC_GetValue(&hadc);
+        uint32_t raw7 = ADC_1::get();
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
         ADC_1::stop();
 

@@ -317,6 +317,10 @@ public:
         }
         return hal_error::ok;
     }
+
+    static inline std::uint32_t get () {
+        return CRegister::get(&m_adc->DR);
+    }
 };
 
 } /* namespace adc */
