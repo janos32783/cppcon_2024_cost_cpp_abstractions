@@ -23,6 +23,8 @@ CSTD = -std=gnu11
 CXXSTD = -std=c++20
 # place each function and data item in its own section -> help remove unused functions and data
 SECTIONS = -ffunction-sections -fdata-sections
+# make the linker remove any unused sections
+LDSECTIONS = -Wl,--gc-sections
 # enable commonly used warnings
 WARN = -Wall
 # no OS is used, bare metal programming
@@ -31,7 +33,7 @@ LDSPECS = --specs=nosys.specs $(SPECS)
 ASMFLAGS = $(CPU) -c $(SPECS) $(FLOAT) $(THUMB)
 CFLAGS = $(CPU) -c $(CSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
 CXXFLAGS = $(CPU) -c $(CXXSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
-LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB)
+LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB) $(LDSECTIONS)
 FLASHSTART = 0x08000000
 
 %.o : %.s
