@@ -3,6 +3,7 @@
 #include "hal/adc/constants.hpp"
 #include "hal/gpio/gpio.hpp"
 #include "hal/rcc/rcc.hpp"
+#include "hal/systick/systick.hpp"
 #include "hal/register.hpp"
 #include "hal/common.hpp"
 
@@ -18,6 +19,7 @@ private:
     static inline AdcState m_state {};
     static inline error_codes m_error_code { error_codes::none };
     static inline bool m_locked { false };
+    static inline bool m_low_power_auto_off_enabled { false };
 
     static inline bool is_enabled () {
         if (CRegister::is_set(&m_adc->CR, ADC_CR_ADEN)) {
@@ -31,6 +33,10 @@ private:
             }
         }
         return false;
+    }
+
+    static inline bool can_be_enabled () {
+        return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADCAL | ADC_CR_ADSTP | ADC_CR_ADSTART | ADC_CR_ADDIS | ADC_CR_ADEN);
     }
 
     template <AdcInitConfig conf>
@@ -95,6 +101,7 @@ public:
             }
             CRegister::set(&m_adc->CFGR1, calculate_cfgr1_set_bits<conf>(), get_cfgr1_clear_bitmask());
             CRegister::set(&m_adc->SMPR, static_cast<std::uint32_t>(conf.sample_time_cycle), ADC_SMPR_SMP);
+            m_low_power_auto_off_enabled = conf.low_power_auto_power_off_enabled;
             std::uint32_t cfgr1_val = CRegister::get(&m_adc->CFGR1);
             cfgr1_val &= ~(ADC_CFGR1_AWDCH | ADC_CFGR1_AWDEN | ADC_CFGR1_AWDSGL | ADC_CFGR1_RES);
             if (cfgr1_val == calculate_cfgr1_set_bits<conf>()) {
@@ -134,6 +141,59 @@ public:
                 ret = hal_error::error;
             }
             m_locked = false;
+        }
+        return ret;
+    }
+
+    static inline hal_error enable () {
+        if (!is_enabled()) {
+            if (!can_be_enabled()) {
+                m_state.internal_error = true;
+                m_error_code = error_codes::internal_error;
+                return hal_error::error;
+            }
+            CRegister::set_bits(&m_adc->CR, ADC_CR_ADEN);
+            systick::CSysTick::delay_us(stable_adc_delay_us);
+            auto tickstart = systick::CSysTick::now();
+            while (CRegister::is_cleared(&m_adc->ISR, ADC_FLAG_RDY)) {
+                if ((systick::CSysTick::now() - tickstart) > enable_timeout_ms) {
+                    if (CRegister::is_cleared(&m_adc->ISR, ADC_FLAG_RDY)) {
+                        m_state.internal_error = true;
+                        m_error_code = error_codes::internal_error;
+                        return hal_error::error;
+                    }
+                }
+            }
+        }
+        return hal_error::ok;
+    }
+
+    static inline hal_error start () {
+        hal_error ret = hal_error::ok;
+        if (!is_conversion_ongoing()) {
+            if (m_locked) {
+                ret = hal_error::busy;
+            }
+            else {
+                m_locked = true;
+                if (!m_low_power_auto_off_enabled) {
+                    ret = enable();
+                }
+                if (ret == hal_error::ok) {
+                    m_state.ready = false;
+                    m_state.end_of_conversion = false;
+                    m_state.overrun = false;
+                    m_state.end_of_sampling = false;
+                    m_state.busy = true;
+                    m_error_code = error_codes::none;
+                    m_locked = false;
+                    CRegister::set_bits(&m_adc->ISR, ADC_FLAG_EOC | ADC_FLAG_EOS | ADC_FLAG_OVR);
+                    CRegister::set_bits(&m_adc->CR, ADC_CR_ADSTART);
+                }
+            }
+        }
+        else {
+            ret = hal_error::busy;
         }
         return ret;
     }

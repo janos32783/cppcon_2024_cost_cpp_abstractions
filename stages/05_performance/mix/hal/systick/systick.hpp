@@ -1,37 +1,19 @@
 #pragma once
 
 #include "hal/register.hpp"
-#include "hal/common.hpp"
+#include "hal/systick/constants.hpp"
 
 namespace hal {
 namespace systick {
-
-enum class tick_frequencies : std::uint32_t {
-    freq_10Hz = 100,
-    freq_100Hz = 10,
-    freq_1kHz = 1
-};
-
-template <tick_frequencies freq>
-concept is_valid_frequency = (
-    (freq == tick_frequencies::freq_10Hz)  ||
-    (freq == tick_frequencies::freq_100Hz) ||
-    (freq == tick_frequencies::freq_1kHz)
-);
-
-struct SystickConfig {
-    uint32_t prio { 0 };
-    uint32_t core_clock_freq { 8000000 };
-    tick_frequencies systick_freq { tick_frequencies::freq_1kHz };
-};
 
 class CSysTick {
 private:
     static inline std::uint64_t m_time { 0 };
     static constexpr std::uint32_t m_address = SCS_BASE;
     using m_reg_t = SysTick_Type;
+    static inline std::uint32_t m_core_clock_freq { 8000000 };
 
-    static consteval std::uint32_t calculate_ticks (uint32_t core_clock_freq, tick_frequencies systick_freq) {
+    static consteval std::uint32_t calculate_ticks (std::uint32_t core_clock_freq, tick_frequencies systick_freq) {
         return core_clock_freq / (1000U / static_cast<std::uint32_t>(systick_freq));
     }
 public:
@@ -46,9 +28,22 @@ public:
         static_assert((ticks - 1) <= SysTick_LOAD_RELOAD_Msk, "impossible reload value");
         m_time = 0;
         SysTick_Config(ticks);
+        m_core_clock_freq = config.core_clock_freq;
 
         static_assert(config.prio < (1UL << __NVIC_PRIO_BITS), "invalid systick priority");
         NVIC_SetPriority(SysTick_IRQn, config.prio);
+    }
+
+    static inline void delay_ms (std::uint32_t delay) {
+        auto start = m_time;
+        while (start + delay < m_time) {}
+    }
+
+    static inline void delay_us (std::uint32_t delay) {
+        std::uint32_t wait_loop_index = (delay * (m_core_clock_freq / 1000000U));
+        while(wait_loop_index != 0U) {
+            wait_loop_index--;
+        }
     }
 };
 

@@ -89,7 +89,7 @@ int main (void) {
         HAL_TIM_Base_Start(&htim1);
 
         ADC_1::select_channel<hal::adc::channels::channel_6>();
-        HAL_ADC_Start(&hadc);
+        ADC_1::start();
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw6 = HAL_ADC_GetValue(&hadc);
         set_leds(raw6);
@@ -98,7 +98,7 @@ int main (void) {
         led.toggle();
 
         ADC_1::select_channel<hal::adc::channels::channel_7>();
-        HAL_ADC_Start(&hadc);
+        ADC_1::start();
         HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
         uint32_t raw7 = HAL_ADC_GetValue(&hadc);
         TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
@@ -112,7 +112,7 @@ int main (void) {
         snprintf(msg, sizeof(msg), "Time taken: %lu ticks\r\n", time_taken);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
-        hal::delay_ms(1000);
+        hal::systick::CSysTick::delay_ms(1000);
     }
 }
 
