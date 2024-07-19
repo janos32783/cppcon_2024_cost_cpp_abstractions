@@ -119,6 +119,7 @@ void PendSV_Handler(void)
   /* USER CODE END PendSV_IRQn 1 */
 }
 
+#ifndef COMPILED_FOR_CPP
 /**
   * @brief This function handles System tick timer.
   */
@@ -132,6 +133,7 @@ void SysTick_Handler(void)
 
   /* USER CODE END SysTick_IRQn 1 */
 }
+#endif
 
 /******************************************************************************/
 /* STM32F0xx Peripheral Interrupt Handlers                                    */

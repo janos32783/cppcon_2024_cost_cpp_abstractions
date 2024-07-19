@@ -52,9 +52,11 @@ public:
     }
 };
 
+extern "C" {
 // function set in the startup file as interrupt handler for the systick interrupt
 void SysTick_Handler(void) {
     CSysTick::tick();
+}
 }
 
 } /* namespace systick */
