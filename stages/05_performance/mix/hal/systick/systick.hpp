@@ -8,7 +8,7 @@ namespace systick {
 
 class CSysTick {
 private:
-    static inline std::uint64_t m_time { 0 };
+    static volatile inline std::uint32_t m_time { 0 };
     static constexpr std::uint32_t m_address = SCS_BASE;
     using m_reg_t = SysTick_Type;
     static inline std::uint32_t m_core_clock_freq { 8000000 };
@@ -18,7 +18,7 @@ private:
     }
 public:
     static inline void tick () { ++m_time; }
-    static inline std::uint64_t now() noexcept { return m_time; }
+    static inline std::uint32_t now() noexcept { return m_time; }
 
     template <SystickConfig config>
     requires (is_valid_frequency<config.systick_freq> && is_preemptive_prio<config.prio>)
@@ -34,9 +34,9 @@ public:
         NVIC_SetPriority(SysTick_IRQn, config.prio);
     }
 
-    static inline void delay_ms (std::uint32_t delay) {
+    static inline void delay_ms (UART_HandleTypeDef *huart, std::uint32_t delay) {
         auto start = m_time;
-        while (start + delay < m_time) {}
+        while ((m_time - start) < delay) {}
     }
 
     static inline void delay_us (std::uint32_t delay) {
