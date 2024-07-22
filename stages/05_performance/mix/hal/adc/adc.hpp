@@ -73,7 +73,7 @@ private:
     }
 
     inline bool is_conversion_ongoing () {
-        return CRegister::is_cleared(&m_adc->CR, ADC_CR_ADSTART);
+        return CRegister::is_set(&m_adc->CR, ADC_CR_ADSTART);
     }
 public:
     template <gpio::ports port, gpio::pins... pin>
@@ -96,7 +96,7 @@ public:
         }
         if (!m_state.internal_error && CRegister::is_cleared(&m_adc->CR, ADC_CR_ADSTART)) {
             m_state.busy = false;
-            m_state.busy_internal = false;
+            m_state.busy_internal = true;
             if (!is_enabled()) {
                 CRegister::set(&m_adc->CFGR1, static_cast<std::uint32_t>(conf.resolution), ADC_CFGR1_RES);
                 CRegister::set(&m_adc->CFGR2, static_cast<std::uint32_t>(conf.clock_prescaler), ADC_CFGR2_CKMODE);

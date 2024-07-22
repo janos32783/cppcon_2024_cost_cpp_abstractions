@@ -17,7 +17,7 @@ private:
         return core_clock_freq / (1000U / static_cast<std::uint32_t>(systick_freq));
     }
 public:
-    static inline void tick () { ++m_time; }
+    static inline void tick () { m_time = m_time + 1; }
     static inline std::uint32_t now() noexcept { return m_time; }
 
     template <SystickConfig config>
@@ -34,7 +34,7 @@ public:
         NVIC_SetPriority(SysTick_IRQn, config.prio);
     }
 
-    static inline void delay_ms (UART_HandleTypeDef *huart, std::uint32_t delay) {
+    static inline void delay_ms (std::uint32_t delay) {
         auto start = m_time;
         while ((m_time - start) < delay) {}
     }
