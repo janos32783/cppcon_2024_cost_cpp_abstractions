@@ -25,9 +25,9 @@ constexpr hal::systick::SystickConfig systick_config {
 };
 
 constexpr hal::rcc::OscInitConfig oscillator_config {
-    .hse_state = hal::rcc::hse_states::on,
+    .hse_state = hal::rcc::hse_states::noconf,
     .lse_state = hal::rcc::lse_states::noconf,
-    .hsi_state = hal::rcc::hsi_states::noconf,
+    .hsi_state = hal::rcc::hsi_states::on,
     .hsi_calib_value = hal::rcc::hsi_calibration_default,
     .hsi14_state = hal::rcc::hsi14_states::on,
     .hsi14_calib_value = 16,
@@ -80,6 +80,12 @@ void set_leds (uint32_t val) {
 	}
 }
 
+#define PRINT_REG(REG) do { \
+    char msg[50] = {0}; \
+    snprintf(msg, sizeof(msg), #REG ": %lu\r\n", (unsigned long)(REG)); \
+    HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY); \
+} while (0)
+
 // record : 13456
 
 int main (void) {
@@ -90,12 +96,13 @@ int main (void) {
     init_gpio();
     hal::adc::CAdc<hal::adc::adc_instances::adc1, adc_config> adc1 {};
     adc1.init<hal::gpio::ports::port_a, hal::gpio::pins::pin_06, hal::gpio::pins::pin_07>();
-    MX_TIM1_Init();
     MX_TIM3_Init();
     MX_USART2_UART_Init();
+    MX_TIM1_Init();
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
     drv::CLed<decltype(gpio)> led { &gpio };
+    HAL_UART_Transmit(&huart2, (uint8_t*)"START\r\n", 8, HAL_MAX_DELAY);
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     while (1)
