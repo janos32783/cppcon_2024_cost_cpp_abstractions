@@ -84,7 +84,7 @@ void set_leds (uint32_t val) {
     HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY); \
 } while (0)
 
-// record : 13456
+// record : 7660
 
 int main (void) {
     if (hal::init<systick_config, oscillator_config, clock_config, flash_latency, HSE_FREQ>() != hal::hal_error::ok) {
@@ -100,7 +100,6 @@ int main (void) {
 
     hal::gpio::CPin<hal::gpio::ports::port_c, hal::gpio::pins::pin_13> gpio {};
     drv::CLed<decltype(gpio)> led { &gpio };
-    HAL_UART_Transmit(&huart2, (uint8_t*)"START\r\n", 8, HAL_MAX_DELAY);
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     while (1)
