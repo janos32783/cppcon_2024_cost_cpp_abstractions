@@ -1,7 +1,5 @@
 #include <cstdint>
 #include "main.h"
-#include <stdio.h>
-#include <string.h>
 
 #include "hal/hal.hpp"
 #include "drv/led.hpp"
@@ -123,16 +121,20 @@ int main (void) {
         adc1.start();
         adc1.poll_for_conversion(HAL_MAX_DELAY);
         uint32_t raw7 = adc1.get();
-        TIM3->CCR1 = (uint32_t)((float)0xffffffff * ((float)raw7 / 255.0f));
+        TIM3->CCR1 = (uint32_t)((uint64_t)raw7 * 0xFFFFFFFF / 255);
         adc1.stop();
 
         led.toggle();
 
         HAL_TIM_Base_Stop(&htim1);
-        uint32_t time_taken = __HAL_TIM_GET_COUNTER(&htim1);
-        char msg[50] = {0};
-        snprintf(msg, sizeof(msg), "Time taken: %lu ticks\r\n", time_taken);
-        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+        char msg[34] = {0};
+        std::uint32_t ticks = __HAL_TIM_GET_COUNTER(&htim1);
+        for (int i = 0; i < 32; ++i) {
+            msg[i] = (ticks & (1 << (31 - i))) ? '1' : '0';
+        }
+        msg[32] = '\r';
+        msg[33] = '\n';
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, 34, HAL_MAX_DELAY);
 
         hal::systick::CSysTick::delay_ms(1000);
     }
