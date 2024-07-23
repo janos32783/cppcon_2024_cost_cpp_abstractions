@@ -1,0 +1,49 @@
+08000198 <GPIO_Init>:
+ 8000198:   6802        ldr     r2, [r0, #0]             ; load the pin value from the GPIO_InitStruct into r2
+ 800019a:   b530        push    {r4, r5, lr}             ; save registers r4, r5, and the return address
+ 800019c:   2a0f        cmp     r2, #15                  ; check if the pin value is less than 16 (IS_GPIO_PIN)
+ 800019e:   d81c        bhi.n   80001da <GPIO_Init+0x42> ; if pin is greater than 15, branch to the end (invalid pin check)
+ 80001a0:   7903        ldrb    r3, [r0, #4]             ; load the mode value from the GPIO_InitStruct into r3
+ 80001a2:   2b01        cmp     r3, #1                   ; check if the mode value is 1 (IS_GPIO_MODE)
+ 80001a4:   d819        bhi.n   80001da <GPIO_Init+0x42> ; if mode is greater than 1, branch to the end (invalid mode check)
+ 80001a6:   d10d        bne.n   80001c4 <GPIO_Init+0x2c> ; if mode is not 1, branch to configure pin for input mode
+ 80001a8:   2403        movs    r4, #3                   ; prepare mask value for OSPEEDR (3)
+ 80001aa:   0052        lsls    r2, r2, #1               ; shift pin value left by 1 bit (pin * 2)
+ 80001ac:   4094        lsls    r4, r2                   ; shift mask value left by (pin * 2) positions
+ 80001ae:   4d0b        ldr     r5, [pc, #44]            ; load address of OSPEEDR into r5 (value at 80001dc)
+ 80001b0:   6829        ldr     r1, [r5, #0]             ; load current OSPEEDR value into r1
+ 80001b2:   43a1        bics    r1, r4                   ; clear the two bits for the pin in OSPEEDR
+ 80001b4:   001c        movs    r4, r3                   ; move mode value to r4
+ 80001b6:   6029        str     r1, [r5, #0]             ; store the modified OSPEEDR value back
+ 80001b8:   6805        ldr     r5, [r0, #0]             ; load the pin value from GPIO_InitStruct into r5 again
+ 80001ba:   4909        ldr     r1, [pc, #36]            ; load address of OTYPER into r1 (80001e0)
+ 80001bc:   40ac        lsls    r4, r5                   ; shift mode value left by pin positions
+ 80001be:   680a        ldr     r2, [r1, #0]             ; load current OTYPER value into r2
+ 80001c0:   43a2        bics    r2, r4                   ; clear the bit for the pin in OTYPER
+ 80001c2:   600a        str     r2, [r1, #0]             ; store the modified OTYPER value back
+ 80001c4:   6802        ldr     r2, [r0, #0]             ; load the pin value from the GPIO_InitStruct into r2 again
+ 80001c6:   2003        movs    r0, #3                   ; prepare mask value for MODER (3 for input/output mode)
+ 80001c8:   2490        movs    r4, #144                 ; prepare mask value for MODER
+ 80001ca:   0052        lsls    r2, r2, #1               ; shift pin value left by 1 bit (pin * 2)
+ 80001cc:   4090        lsls    r0, r2                   ; shift mode mask left by (pin * 2) positions
+ 80001ce:   4093        lsls    r3, r2                   ; shift mode value left by (pin * 2) positions
+ 80001d0:   05e4        lsls    r4, r4, #23              ; shift the mask value for MODER left by 23 bits
+ 80001d2:   6821        ldr     r1, [r4, #0]             ; load current MODER value into r1
+ 80001d4:   4381        bics    r1, r0                   ; clear the two bits for the pin in MODER
+ 80001d6:   430b        orrs    r3, r1                   ; set the bits for the pin mode in MODER
+ 80001d8:   6023        str     r3, [r4, #0]             ; store the modified MODER value back
+ 80001da:   bd30        pop     {r4, r5, pc}             ; restore registers r4, r5, and return address
+ 80001dc:   48000008    .word   0x48000008               ; address for OSPEEDR
+ 80001e0:   48000004    .word   0x48000004               ; address for OTYPER
+
+
+080001e4 <main>:
+ 80001e4:   2306        movs    r3, #6                 ; set up the pin value for GPIO_PIN_6 (value 6)
+ 80001e6:   b507        push    {r0, r1, r2, lr}       ; prepare for calling a function by saving the current state
+ 80001e8:   9300        str     r3, [sp, #0]           ; store the pin value in the GPIO_InitStruct structure on the stack
+ 80001ea:   4668        mov     r0, sp                 ; prepare to pass the address of the GPIO_InitStruct structure to the GPIO_Init function
+ 80001ec:   3b05        subs    r3, #5                 ; set up the mode value for GPIO_MODE_INPUT (subtract 5 from 6 -> 1)
+ 80001ee:   9301        str     r3, [sp, #4]           ; store the mode value in the GPIO_InitStruct structure on the stack
+ 80001f0:   f7ff ffd2   bl      8000198 <GPIO_Init>    ; call the GPIO_Init function with the GPIO_InitStruct structure as an argument
+ 80001f4:   e7fe        b.n     80001f4 <main+0x10>    ; create an infinite loop (branch to the same address)
+    ...

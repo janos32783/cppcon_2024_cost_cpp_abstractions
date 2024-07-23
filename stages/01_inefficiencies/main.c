@@ -30,7 +30,7 @@ typedef struct {
     GPIO_Modes mode;
 } GPIO_InitStruct;
 
-static inline
+//static inline
 void GPIO_Init(GPIO_InitStruct* conf) {
     uint32_t temp;
 
