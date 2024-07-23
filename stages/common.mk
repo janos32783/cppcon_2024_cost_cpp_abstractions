@@ -29,11 +29,13 @@ LDSECTIONS = -Wl,--gc-sections
 WARN = -Wall
 # no OS is used, bare metal programming
 LDSPECS = --specs=nosys.specs $(SPECS)
+# includes
+INCLUDES = -I. -I..
 
 ASMFLAGS = $(CPU) -c $(SPECS) $(FLOAT) $(THUMB)
-CFLAGS = $(CPU) -c $(CSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
-CXXFLAGS = $(CPU) -c $(CXXSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) -I.
-LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB) $(LDSECTIONS)
+CFLAGS = $(CPU) -c $(CSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) $(INCLUDES)
+CXXFLAGS = $(CPU) -c $(CXXSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) $(INCLUDES)
+LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB) $(LDSECTIONS) -static
 FLASHSTART = 0x08000000
 
 %.o : %.s
