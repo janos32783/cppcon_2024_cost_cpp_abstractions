@@ -1,0 +1,25 @@
+base firmware : nothing but an empty infinite loop in the main function
+
++ startup script
+    - setting stack pointer
+    - copying data section from flash to RAM
+    - initialize the uninitialized global and static variables to zero
+    - call static constructors
+    - call main
+
++ linker script, specifying the memory layout
+
+C:
+    - text  : 524
+    - data  : 0
+    - bss   : 1568
+    - total : 2092
+C++:
+    - text  : 524
+    - data  : 0
+    - bss   : 1568
+    - total : 2092
+
+    -> the bss section does not take up space in the actual binary file, it is allocated and initialized at runtime
+
+-> they both have the same size

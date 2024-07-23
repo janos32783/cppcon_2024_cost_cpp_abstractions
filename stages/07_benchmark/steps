@@ -1,0 +1,21 @@
+running script on a dedicated thread
+
+- cat /proc/cpuinfo -> I have 6 physical cores 0...5
+- in file "/etc/default/grub" change the line:
+
+        GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+        
+  to
+  
+        GRUB_CMDLINE_LINUX_DEFAULT="quiet splash isolcpus=2,3,4,5"
+  
+  to isolate CPUs with index 2, 3, 4 and 5
+
+- sudo update-grub
+- reboot
+- then:
+
+    taskset -c 2 ./run.sh 1 &
+    taskset -c 3 ./run.sh 20 &
+    taskset -c 4 ./run.sh 50 &
+    taksset -c 5 ./run.sh 100 &

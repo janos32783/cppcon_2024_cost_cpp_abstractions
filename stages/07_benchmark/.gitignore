@@ -1,0 +1,14 @@
+base.c
+base.cpp
+base*.c
+base*.cpp
+base_c_*
+base_cpp_*
+main*.c
+main*.cpp
+main_c_*
+main_cpp_*
+main_extra.cpp
+main.c
+main.cpp
+plt*.png

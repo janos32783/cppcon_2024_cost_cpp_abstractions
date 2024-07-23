@@ -31,12 +31,26 @@ WARN = -Wall
 LDSPECS = --specs=nosys.specs $(SPECS)
 # includes
 INCLUDES = -I. -I..
+# link statically
+STATIC = -static
+
+# conditional flag for map file -> make CREATE_MAP=1
+ifdef CREATE_MAP
+MAPFLAG = -Wl,-Map=memory.map
+else
+MAPFLAG =
+endif
 
 ASMFLAGS = $(CPU) -c $(SPECS) $(FLOAT) $(THUMB)
 CFLAGS = $(CPU) -c $(CSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) $(INCLUDES)
 CXXFLAGS = $(CPU) -c $(CXXSTD) $(OPTIMIZATION) $(SECTIONS) $(WARN) $(SPECS) $(FLOAT) $(THUMB) $(INCLUDES)
-LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB) $(LDSECTIONS) -static
+LDFLAGS = $(CPU) $(LDSPECS) $(FLOAT) $(THUMB) $(LDSECTIONS) $(STATIC) $(MAPFLAG)
 FLASHSTART = 0x08000000
+
+# conditional flag for exceptions -> make NOEXCEPT=1
+ifdef NOEXCEPT
+CXXFLAGS += -fno-exceptions
+endif
 
 %.o : %.s
 	$(CXX) $(ASMFLAGS) $< -o $@
