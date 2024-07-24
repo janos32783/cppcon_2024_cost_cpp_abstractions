@@ -41,30 +41,49 @@ public:
         tmp |= value;
         this->set(tmp);
     }
+
+    void set_bits (std::uint32_t bitmask) {
+        *(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) = *(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) | bitmask;
+    }
+
+    void clear_bits (std::uint32_t bitmask) {
+        *(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) = *(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) & ~bitmask;
+    }
+
+    bool is_set (std::uint32_t bitmask) {
+        return (*(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) & bitmask) == bitmask;
+    }
+
+    bool is_cleared (std::uint32_t bitmask) {
+        return (*(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) & bitmask) == 0;
+    }
+
+    std::uint32_t get_bits (std::uint32_t bitmask) {
+        return *(reinterpret_cast<volatile std::uint32_t *>(this->m_address)) & bitmask;
+    }
 };
 
 class CModeRegister {
 private:
     static inline const CRegister m_register { ModeRegisterAddress };
 
-    template <pin_numbers pin, gpio_modes mode>
-    static consteval std::uint32_t calculate_value () {
+    static inline std::uint32_t calculate_value (pin_numbers pin, gpio_modes mode) {
         return static_cast<std::uint32_t>(mode) << static_cast<std::uint32_t>(pin) * 2;
     }
 
-    template <pin_numbers pin, gpio_modes mode>
-    static consteval std::uint32_t calculate_bitmask () {
+    static inline std::uint32_t calculate_bitmask (pin_numbers pin) {
         return static_cast<std::uint32_t>(0b11) << static_cast<std::uint32_t>(pin) * 2;
     }
 public:
-    template <pin_numbers pin, gpio_modes mode>
-    static inline void set_mode () {
-        m_register.set(calculate_value<pin, mode>(), calculate_bitmask<pin, mode>());
+    static inline void set_mode (pin_numbers pin, gpio_modes mode) {
+        m_register.set(calculate_value(pin, mode), calculate_bitmask(pin));
     }
 };
 
 int main (void) {
-    CModeRegister::set_mode<pin_numbers::pin_6, gpio_modes::output>();
+    CModeRegister::set_mode(pin_numbers::pin_6, gpio_modes::output);
+    CModeRegister::set_mode(pin_numbers::pin_7, gpio_modes::input);
+    CModeRegister::set_mode(pin_numbers::pin_2, gpio_modes::analog);
 
     while (true) { /* ... */ }
 }
