@@ -42,51 +42,51 @@ typedef enum {
 
 class CModeRegister {
 private:
-    static inline const CRegister m_register { 0x48000000 };
+    const CRegister m_register { 0x48000000 };
 
-    static inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Modes mode) {
+    inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Modes mode) {
         return (mode & GPIO_MODE) << (pin * 2);
     }
 
-    static inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
+    inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
         return MODER_MASK << (pin * 2);
     }
 public:
-    static inline void set_mode (std::uint32_t pin, GPIO_Modes mode) {
+    inline void set_mode (std::uint32_t pin, GPIO_Modes mode) {
         m_register.set(calculate_value(pin, mode), calculate_bitmask(pin));
     }
 };
 
 class COutputTypeRegister {
 private:
-    static inline const CRegister m_register { 0x48000004 };
+    const CRegister m_register { 0x48000004 };
 
-    static inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Output_Types type) {
+    inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Output_Types type) {
         return ((type & GPIO_OUTPUT_TYPE) >> 4u) << pin;
     }
 
-    static inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
+    inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
         return OTYPER_MASK << pin;
     }
 public:
-    static inline void set_type (std::uint32_t pin, GPIO_Output_Types type) {
+    inline void set_type (std::uint32_t pin, GPIO_Output_Types type) {
         m_register.set(calculate_value(pin, type), calculate_bitmask(pin));
     }
 };
 
 class COutputSpeedRegister {
 private:
-    static inline const CRegister m_register { 0x48000008 };
+    const CRegister m_register { 0x48000008 };
 
-    static inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Output_Speeds speed) {
+    inline std::uint32_t calculate_value (std::uint32_t pin, GPIO_Output_Speeds speed) {
         return speed << (pin * 2);
     }
 
-    static inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
+    inline std::uint32_t calculate_bitmask (std::uint32_t pin) {
         return OSPEEDR_MASK << (pin * 2);
     }
 public:
-    static inline void set_speed (std::uint32_t pin, GPIO_Output_Speeds speed) {
+    inline void set_speed (std::uint32_t pin, GPIO_Output_Speeds speed) {
         m_register.set(calculate_value(pin, speed), calculate_bitmask(pin));
     }
 };
@@ -105,10 +105,13 @@ void GPIO_Init(GPIO_InitStruct* conf) {
 
     /* configure the GPIO based on the settings */
     if (conf->mode == GPIO_MODE_OUTPUT) {
-        COutputSpeedRegister::set_speed(conf->pin, conf->speed);
-        COutputTypeRegister::set_type(conf->pin, conf->type);
+        COutputSpeedRegister ospeedr {};
+        COutputTypeRegister otyper {};
+        ospeedr.set_speed(conf->pin, conf->speed);
+        otyper.set_type(conf->pin, conf->type);
     }
-    CModeRegister::set_mode(conf->pin, conf->mode);
+    CModeRegister moder {};
+    moder.set_mode(conf->pin, conf->mode);
 
     /* ... */
 }

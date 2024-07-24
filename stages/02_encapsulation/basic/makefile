@@ -1,14 +1,8 @@
 NOEXCEPT=1
-include ../common.mk
+include ../../common.mk
 
-INCLUDES += -I../hal/Drivers/STM32F0xx_HAL_Driver/Inc \
-            -I../hal/Drivers/CMSIS/Device/ST/STM32F0xx/Include \
-            -I../hal/Drivers/CMSIS/Include \
-            -I../hal/Core/Inc \
-            -I..
-
-OBJS = main.o ../startup.o
-LINKER_SCRIPT = ../linker_script.ld
+OBJS = main.o ../../startup.o
+LINKER_SCRIPT = ../../linker_script.ld
 ELF = main.elf
 BIN = main.bin
 
