@@ -5,21 +5,21 @@
 class CLed {
 private:
     bool m_state { false };
-    IPin* m_gpio { nullptr };
+    IPin* m_pin { nullptr };
 public:
     CLed () = delete;
-    CLed (IPin* gpio) : m_gpio(gpio) {
-        m_gpio->reset();
+    CLed (IPin* pin) : m_pin(pin) {
+        m_pin->reset();
     }
 
     void turn_on () {
         m_state = true;
-        m_gpio->set();
+        m_pin->set();
     }
 
     void turn_off () {
         m_state = false;
-        m_gpio->reset();
+        m_pin->reset();
     }
 
     void toggle () {

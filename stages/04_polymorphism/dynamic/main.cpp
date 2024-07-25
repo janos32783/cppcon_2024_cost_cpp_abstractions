@@ -126,17 +126,14 @@ void GPIO_Init(GPIO_InitStruct* conf) {
 
 class CPin : public IPin {
 private:
-    bool m_state { false };
     std::uint8_t m_pin { 0 };
 public:
     CPin () = delete;
     CPin (std::uint8_t pin) : m_pin(pin) {}
     void set () override {
-        m_state = true;
         CBitSetResetRegister::set_pin(m_pin);
     }
     void reset () override {
-        m_state = true;
         CBitSetResetRegister::reset_pin(m_pin);
     }
 };
