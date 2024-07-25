@@ -51,6 +51,10 @@ FLASHSTART = 0x08000000
 ifdef NOEXCEPT
 CXXFLAGS += -fno-exceptions
 endif
+# conditional flag for rtti -> make NORTTI=1
+ifdef NORTTI
+CXXFLAGS += -fno-rtti
+endif
 
 %.o : %.s
 	$(CXX) $(ASMFLAGS) $< -o $@
