@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-types = ('C', 'no RTTI', 'RTTI', 'no RTTI with virt.')
+types = ('C', 'no RTTI', 'RTTI')
 binaries = {
-    'text': np.array([716, 776, 2208, 872]),
-    'bss': np.array([1568, 1568, 1580, 1568]),
+    'text': np.array([716, 776, 2208]),
+    'bss': np.array([1568, 1568, 1580]),
 }
 filename = "bin_size.png"
 

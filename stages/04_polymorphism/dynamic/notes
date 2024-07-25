@@ -1,0 +1,107 @@
+-fno-devirtualize -fno-devirtualize-speculatively
+
+class CLed {
+private:
+    bool m_state { false };
+    IPin* m_pin { nullptr };
+public:
+    CLed () = delete;
+    CLed (IPin* pin) : m_pin(pin) {}
+
+    void turn_on () {
+        m_state = true;
+        m_pin->set();
+    }
+
+    void turn_off () {
+        m_state = false;
+        m_pin->reset();
+    }
+
+    void toggle () {
+        if (m_state) {
+            turn_off();
+        }
+        else {
+            turn_on();
+        }
+    }
+};
+
+class CPin : public IPin {
+private:
+    std::uint8_t m_pin { 0 };
+public:
+    CPin () = delete;
+    CPin (std::uint8_t pin) : m_pin(pin) {}
+    void set () override {
+        CBitSetResetRegister::set_pin(m_pin);
+    }
+    void reset () override {
+        CBitSetResetRegister::reset_pin(m_pin);
+    }
+};
+
+void delay (uint32_t delay) {
+    volatile uint32_t counter = delay;
+    while (counter > 0) {
+        counter = counter - 1;
+    }
+}
+
+int main (void) {
+    CPin pin { GPIO_PIN_6 };
+    CLed led { &pin };
+    
+    while (true) {
+        led.turn_on();
+        led.turn_off();
+    }
+}
+
+
+080001c4 <main>:
+ 80001c4:	b507      	push	{r0, r1, r2, lr}                        ; Push registers: Save r0, r1, r2, and the link register lr onto the stack.
+ 80001c6:	4b07      	ldr	r3, [pc, #28]	; (80001e4 <main+0x20>)     ; Load address: Load the address 0x08000258 (vtable for CPin) into r3.
+ 80001c8:	466a      	mov	r2, sp                                      ; Move stack pointer: Move the stack pointer sp to r2.
+ 80001ca:	9300      	str	r3, [sp, #0]                                ; Store vtable address: Store the vtable address at sp + 0.
+ 80001cc:	2306      	movs	r3, #6                                  ; Move immediate: Move the immediate value 6 into r3. (GPIO_PIN_6)
+ 80001ce:	7113      	strb	r3, [r2, #4]                            ; Store pin number: Store GPIO_PIN_6 at sp + 4.
+ 80001d0:	9b00      	ldr	r3, [sp, #0]                                ; Load vtable address: Load the vtable address from sp + 0 into r3.
+ 80001d2:	4668      	mov	r0, sp                                      ; Move stack pointer: Move the stack pointer sp to r0.
+ 80001d4:	681b      	ldr	r3, [r3, #0]                                ; Load function address: Load the address of the reset method from the vtable into r3.
+ 80001d6:	4798      	blx	r3                                          ; Branch to function: Call the reset method via the address in r3.
+ 80001d8:	9b00      	ldr	r3, [sp, #0]                                ; Load vtable address: Load the vtable address from sp + 0 into r3.
+ 80001da:	4668      	mov	r0, sp                                      ; Move stack pointer: Move the stack pointer sp to r0.
+ 80001dc:	685b      	ldr	r3, [r3, #4]                                ; Load function address: Load the address of the set method from the vtable into r3.
+ 80001de:	4798      	blx	r3                                          ; Branch to function: Call the set method via the address in r3.
+ 80001e0:	e7f6      	b.n	80001d0 <main+0xc>                          ; Branch: Loop back to 80001d0 to repeat the turn on and turn off sequence.
+ 80001e2:	46c0      	nop			; (mov r8, r8)                      ; No operation: Placeholder for alignment or delay.
+ 80001e4:	08000258 	.word	0x08000258                              ; Address: Contains the address 0x08000258 which is the address of the CPin vtable.
+
+0x08000258 : 0x080001b1     ; address 080001b0, just with lsb = 1    -> _ZN4CPin3setEv
+0x0800025c : 0x08000199     ; address 08000198, just with lsb = 1    -> _ZN4CPin5resetEv
+
+08000198 <_ZN4CPin5resetEv>:
+ 8000198:	2301      	movs	r3, #1
+ 800019a:	b510      	push	{r4, lr}
+ 800019c:	7902      	ldrb	r2, [r0, #4]
+ 800019e:	4903      	ldr	r1, [pc, #12]	; (80001ac <_ZN4CPin5resetEv+0x14>)
+ 80001a0:	0052      	lsls	r2, r2, #1
+ 80001a2:	4093      	lsls	r3, r2
+ 80001a4:	680c      	ldr	r4, [r1, #0]
+ 80001a6:	4323      	orrs	r3, r4
+ 80001a8:	600b      	str	r3, [r1, #0]
+ 80001aa:	bd10      	pop	{r4, pc}
+ 80001ac:	4800000c 	.word	0x4800000c
+
+080001b0 <_ZN4CPin3setEv>:
+ 80001b0:	2301      	movs	r3, #1
+ 80001b2:	7900      	ldrb	r0, [r0, #4]
+ 80001b4:	4a02      	ldr	r2, [pc, #8]	; (80001c0 <_ZN4CPin3setEv+0x10>)
+ 80001b6:	4083      	lsls	r3, r0
+ 80001b8:	6811      	ldr	r1, [r2, #0]
+ 80001ba:	430b      	orrs	r3, r1
+ 80001bc:	6013      	str	r3, [r2, #0]
+ 80001be:	4770      	bx	lr
+ 80001c0:	4800000c 	.word	0x4800000c
