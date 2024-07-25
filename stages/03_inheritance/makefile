@@ -1,3 +1,4 @@
+NOEXCEPT=1
 include ../common.mk
 
 OBJS = main.o ../startup.o
