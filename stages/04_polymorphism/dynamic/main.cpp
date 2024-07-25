@@ -138,9 +138,28 @@ public:
     }
 };
 
-void delay (std::uint32_t delay) {
-    while (delay > 0) {
-        --delay;
+#define VIRT 0
+
+#if VIRT == 1
+class CInvertedPin : public IPin {
+private:
+    std::uint8_t m_pin { 0 };
+public:
+    CInvertedPin () = delete;
+    CInvertedPin (std::uint8_t pin) : m_pin(pin) {}
+    void set () override {
+        CBitSetResetRegister::reset_pin(m_pin);
+    }
+    void reset () override {
+        CBitSetResetRegister::set_pin(m_pin);
+    }
+};
+#endif
+
+void delay (uint32_t delay) {
+    volatile uint32_t counter = delay;
+    while (counter > 0) {
+        counter = counter - 1;
     }
 }
 
@@ -152,8 +171,25 @@ int main (void) {
     conf.speed = GPIO_SPEED_SLOW;
     GPIO_Init(&conf);
 
-    CPin pin { GPIO_PIN_6 };
-    CLed led { &pin };
+#if VIRT == 1
+    volatile bool inverted = false;
+
+    CInvertedPin inverted_pin { GPIO_PIN_7 };
+#endif
+    CPin normal_pin { GPIO_PIN_6 };
+
+#if VIRT == 1
+    IPin* pin = nullptr;
+    if (inverted) {
+        pin = &inverted_pin;
+    }
+    else {
+        pin = &normal_pin;
+    }
+    CLed led { pin };
+#else
+    CLed led { &normal_pin };
+#endif
 
     while (true) {
         led.toggle();
