@@ -1,50 +1,54 @@
-import matplotlib.pyplot as plt 
 import pandas as pd
 import numpy as np
-import sys
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.colors import LightSource
+from scipy.interpolate import griddata
 
-N = sys.argv[1]
+# Read the CSV data from a file
+file_path = 'data.csv'  # Replace with the path to your CSV file
+data = pd.read_csv(file_path)
 
-my_dpi=200
+# Extract the data into variables
+x = data['num_funcs']
+y = data['num_calls']
+z = data['comp_t']
 
-data = pd.read_csv("data_" + N + ".csv")
+# Create a DataFrame for easy handling of duplicates
+df = pd.DataFrame({'x': x, 'y': y, 'z': z})
 
-fig, axs = plt.subplots(2, 2)
+# Aggregate z-values for the same x-y pairs by taking the mean
+df_aggregated = df.groupby(['x', 'y']).mean().reset_index()
 
-fig.suptitle('evaluation')
-fig.set_size_inches(20, 15)
+# Extract the aggregated data into variables
+x = df_aggregated['x']
+y = df_aggregated['y']
+z = df_aggregated['z']
 
-axs[0, 0].plot(data['num_calls'].values, data['c_size_o'].values, label="C", color='g', linestyle='solid', marker=',')
-axs[0, 0].plot(data['num_calls'].values, data['cpp_size_o'].values, label="C++", color='r', linestyle='solid', marker='x')
-axs[0, 0].plot(data['num_calls'].values, data['cpp_encapsulation_size_o'].values, label="C++ (encapsulation)", color='b', linestyle='solid', marker='v')
-axs[0, 0].plot(data['num_calls'].values, data['cpp_static_poly_size_o'].values, label="C++ (static polymorphism)", color='y', linestyle='solid', marker='.')
-axs[0, 0].plot(data['num_calls'].values, data['cpp_dynamic_poly_size_o'].values, label="C++ (dynamic polymorphism)", color='m', linestyle='solid', marker='s')
-axs[0, 0].set(xlabel='number of function calls', ylabel='size overhead (bytes)')
-axs[0, 0].legend(loc="upper left")
+# Create a 2D grid of x, y values
+x_unique = np.linspace(x.min(), x.max(), 100)
+y_unique = np.linspace(y.min(), y.max(), 100)
+x_grid, y_grid = np.meshgrid(x_unique, y_unique)
 
-axs[0, 1].plot(data['num_calls'].values, data['c_comp_t'].values, label="C", color='g', linestyle='solid', marker=',')
-axs[0, 1].plot(data['num_calls'].values, data['cpp_comp_t'].values, label="C++", color='r', linestyle='solid', marker='x')
-axs[0, 1].plot(data['num_calls'].values, data['cpp_encapsulation_comp_t'].values, label="C++ (encapsulation)", color='b', linestyle='solid', marker='v')
-axs[0, 1].plot(data['num_calls'].values, data['cpp_static_poly_comp_t'].values, label="C++ (static polymorphism)", color='y', linestyle='solid', marker='.')
-axs[0, 1].plot(data['num_calls'].values, data['cpp_dynamic_poly_comp_t'].values, label="C++ (dynamic polymorphism)", color='m', linestyle='solid', marker='s')
-axs[0, 1].set(xlabel='number of function calls', ylabel='compilation time (s)')
-axs[0, 1].legend(loc="upper left")
+# Interpolate the z values to the 2D grid using nearest neighbor interpolation
+z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
 
-axs[1, 0].plot(data['num_calls'].values, data['c_link_t'].values, label="C", color='g', linestyle='solid', marker=',')
-axs[1, 0].plot(data['num_calls'].values, data['cpp_link_t'].values, label="C++", color='r', linestyle='solid', marker='x')
-axs[1, 0].plot(data['num_calls'].values, data['cpp_encapsulation_link_t'].values, label="C++ (encapsulation)", color='b', linestyle='solid', marker='v')
-axs[1, 0].plot(data['num_calls'].values, data['cpp_static_poly_link_t'].values, label="C++ (static polymorphism)", color='y', linestyle='solid', marker='.')
-axs[1, 0].plot(data['num_calls'].values, data['cpp_dynamic_poly_link_t'].values, label="C++ (dynamic polymorphism)", color='m', linestyle='solid', marker='s')
-axs[1, 0].set(xlabel='number of function calls', ylabel='link time (s)')
-axs[1, 0].legend(loc="upper left")
+# Create the hillshading effect
+ls = LightSource(azdeg=315, altdeg=45)
+rgb = ls.shade(z_grid, plt.cm.viridis)
 
-axs[1, 1].plot(data['num_calls'].values, data['c_exec_t'].values, label="C", color='g', linestyle='solid', marker=',')
-axs[1, 1].plot(data['num_calls'].values, data['cpp_exec_t'].values, label="C++", color='r', linestyle='solid', marker='x')
-axs[1, 1].plot(data['num_calls'].values, data['cpp_encapsulation_exec_t'].values, label="C++ (encapsulation)", color='b', linestyle='solid', marker='v')
-axs[1, 1].plot(data['num_calls'].values, data['cpp_static_poly_exec_t'].values, label="C++ (static polymorphism)", color='y', linestyle='solid', marker='.')
-axs[1, 1].plot(data['num_calls'].values, data['cpp_dynamic_poly_exec_t'].values, label="C++ (dynamic polymorphism)", color='m', linestyle='solid', marker='s')
-axs[1, 1].set(xlabel='number of function calls', ylabel='execution time (ns)')
-axs[1, 1].legend(loc="upper left")
+# Plotting the data
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
 
-plt.savefig('plt_cpp_v_cpp' + N + '.png', dpi=my_dpi)
+# Plot the surface with hillshading
+surf = ax.plot_surface(x_grid, y_grid, z_grid, facecolors=rgb, rstride=1, cstride=1, antialiased=True)
 
+# Labels and title
+ax.set_xlabel('Number of Functions')
+ax.set_ylabel('Number of Calls')
+ax.set_zlabel('Computation Time')
+ax.set_title('3D Hillshading Plot')
+
+# Show the plot
+plt.show()
