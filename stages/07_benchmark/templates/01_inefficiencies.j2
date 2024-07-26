@@ -1,0 +1,72 @@
+#include <stdint.h>
+
+{%- for reg in registers %}
+#define {{reg["name"]}} (*((volatile uint32_t*){{reg["address"]}}))
+{%- endfor %}
+
+{%- for constant in constants %}
+#define {{constant["name"]}} {{constant["value"]}}
+{%- endfor %}
+
+{%- for enum in enums %}
+typedef enum {
+    {%- for val in enum["values"] %}
+    {{val["name"]}} = {{val["value"]}}{% if not loop.last %},{% endif %}
+    {%- endfor %}
+} {{enum["name"]}};
+{%- endfor %}
+
+{%- for enum in enums %}
+#define IS_{{enum["name"]}}(X) ({% for val in enum["values"] %}((X) == {{val["name"]}}){% if not loop.last %} || {% endif %}{% endfor %})
+{%- endfor %}
+
+{%- for struct in structs %}
+typedef struct {
+    {%- for member in struct["members"] %}
+    {{member["type"]}} {{member["name"]}};
+    {%- endfor %}
+} {{struct["name"]}};
+{%- endfor %}
+
+{%- for func in funcs %}
+void {{func["name"]}}({{func["param"]["name"]}}* param) {
+    __attribute__((unused)) uint32_t temp;
+
+    /* check the values */
+    {%- for member in func["param"]["members"] %}
+    {%- for enum in enums %}
+    {%- if enum["name"] == member["type"] %}
+    if (!IS_{{enum["name"]}}(param->{{member["name"]}})) { return; }
+    {%- endif %}
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for if_block in func["ifs"] %}
+    if (param->{{if_block["cond_var"]["name"]}} == {{if_block["cond_val"]["name"]}}) {
+        __attribute__((unused)) {{if_block["value"]["type"]}} val = param->{{if_block["value"]["name"]}};
+        __attribute__((unused)) {{if_block["shift"]["type"]}} shift = param->{{if_block["shift"]["name"]}};
+        {%- for reg in if_block["registers"] %}
+        temp = {{reg["name"]}};
+        temp &= ~({{reg["mask_name"]}} << (shift * {{reg["mask_mul"]}}));
+        temp |= (val << (shift * {{reg["mask_mul"]}}));
+        {{reg["name"]}} = temp;
+        {%- endfor %}
+    }
+    {%- endfor %}
+}
+{%- endfor %}
+
+int main (void) {
+    {%- for struct in structs %}
+    __attribute__((unused)) {{struct["name"]}} inst_{{struct["name"]}} = {0};
+    {%- for member in struct["members"] %}
+    inst_{{struct["name"]}}.{{member["name"]}} = {{member["init"]}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for call in calls %}
+    {{call["func"]["name"]}}(&inst_{{call["func"]["param"]["name"]}});
+    {%- endfor %}
+
+    while (1) {}
+}
