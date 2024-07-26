@@ -24,7 +24,8 @@ inheritance_template = template_env.get_template("templates/03_inheritance.j2")
 
 # constants
 constants = []
-num_constants = random.randint(1, MAX_CONSTANTS)
+#num_constants = random.randint(1, MAX_CONSTANTS)
+num_constants = MAX_CONSTANTS
 for i in range(num_constants) :
     const_name = "CONST_" + str(i)
     const_val = hex(i) + "UL"

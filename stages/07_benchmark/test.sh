@@ -7,7 +7,7 @@ CSV_FILE_02_basic="02_basic_data.csv"
 CSV_FILE_02_template="02_template_data.csv"
 CSV_FILE_03="03_data.csv"
 
-echo "num_funcs,num_calls,comp_t" > $CSV_FILE_01
+echo "num_funcs,comp_t" > $CSV_FILE_01
 echo "num_regs,comp_t" > $CSV_FILE_02_basic
 echo "num_regs,comp_t" > $CSV_FILE_02_template
 echo "num_regs,comp_t" > $CSV_FILE_03

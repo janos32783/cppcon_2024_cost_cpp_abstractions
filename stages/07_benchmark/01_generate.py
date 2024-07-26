@@ -2,10 +2,9 @@ import jinja2
 import random
 import sys
 
-MAX_CALLS = 100
-MAX_FUNCTIONS = 100
+MAX_FUNCTIONS = 1000
 
-MAX_REGISTERS = 50
+MAX_CALLS = 10
 MAX_CONSTANTS = 100
 MAX_ENUMS = 30
 MAX_ENUM_VALUES = 10
@@ -34,7 +33,7 @@ for i in range(num_constants) :
 # registers
 registers = []
 #num_registers = random.randint(1, MAX_REGISTERS)
-num_registers = MAX_REGISTERS
+num_registers = MAX_FUNCTIONS
 for i in range(num_registers) :
     reg_name = "REG_" + str(i)
     reg_addr = hex(0x48000000 + (4 * i)) + "UL"
@@ -114,7 +113,8 @@ for i in range(num_funcs) :
 
 # calls
 calls = []
-num_calls = random.randint(1, MAX_CALLS)
+#num_calls = random.randint(1, MAX_CALLS)
+num_calls = MAX_CALLS
 for i in range(num_calls) :
     func = funcs[random.randint(0, len(funcs) - 1)]
     func_param = structs[random.randint(0, len(structs) - 1)]
@@ -126,4 +126,4 @@ with open(r'build/01_main.c', 'w') as fp:
     fp.write(outputText)
 
 with open("01_data.csv", "a") as myfile:
-    myfile.write(str(num_funcs) + "," + str(num_calls) + ",")
+    myfile.write(str(num_funcs) + ",")
