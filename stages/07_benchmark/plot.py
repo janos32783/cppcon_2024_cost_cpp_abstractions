@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.colors import LightSource
+from mpl_toolkits.mplot3d import axes3d
 from scipy.interpolate import griddata
 
 # Read the CSV data from a file
@@ -33,22 +32,20 @@ x_grid, y_grid = np.meshgrid(x_unique, y_unique)
 # Interpolate the z values to the 2D grid using nearest neighbor interpolation
 z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
 
-# Create the hillshading effect
-ls = LightSource(azdeg=315, altdeg=45)
-rgb = ls.shade(z_grid, plt.cm.viridis)
-
-# Plotting the data
+# Plot the data
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# Plot the surface with hillshading
-surf = ax.plot_surface(x_grid, y_grid, z_grid, facecolors=rgb, rstride=1, cstride=1, antialiased=True)
+# Plot the 3D surface
+#ax.plot_surface(x_grid, y_grid, z_grid, edgecolor='royalblue', lw=0.5, rstride=8, cstride=8, alpha=0.3)
 
-# Labels and title
-ax.set_xlabel('Number of Functions')
-ax.set_ylabel('Number of Calls')
-ax.set_zlabel('Computation Time')
-ax.set_title('3D Hillshading Plot')
+# Plot projections of the contours for each dimension
+ax.contourf(x_grid, y_grid, z_grid, zdir='z', offset=z_grid.min() - 0, cmap='coolwarm')
+ax.contourf(x_grid, y_grid, z_grid, zdir='x', offset=x_grid.min() - 0, cmap='coolwarm')
+ax.contourf(x_grid, y_grid, z_grid, zdir='y', offset=y_grid.max() + 0, cmap='coolwarm')
 
-# Show the plot
+# Set limits and labels
+ax.set(xlim=(x_grid.min() - 0, x_grid.max() + 0), ylim=(y_grid.min() - 0, y_grid.max() + 0), zlim=(z_grid.min() - 0, z_grid.max() + 0),
+       xlabel='Number of Functions', ylabel='Number of Calls', zlabel='Computation Time')
+
 plt.show()

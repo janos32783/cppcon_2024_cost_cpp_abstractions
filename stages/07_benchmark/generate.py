@@ -33,7 +33,8 @@ for i in range(num_constants) :
 
 # registers
 registers = []
-num_registers = random.randint(1, MAX_REGISTERS)
+#num_registers = random.randint(1, MAX_REGISTERS)
+num_registers = MAX_REGISTERS
 for i in range(num_registers) :
     reg_name = "REG_" + str(i)
     reg_addr = hex(0x48000000 + (4 * i)) + "UL"
@@ -54,12 +55,14 @@ types.append("int")
 
 # enums
 enums = []
-num_enums = random.randint(1, MAX_ENUMS)
+#num_enums = random.randint(1, MAX_ENUMS)
+num_enums = MAX_ENUMS
 for i in range(num_enums) :
     enum_name = "ENUM_" + str(i)
     types.append(enum_name)
     enum = {"name" : enum_name, "values" : []}
-    num_enumvalues = random.randint(1, MAX_ENUM_VALUES)
+    #num_enumvalues = random.randint(1, MAX_ENUM_VALUES)
+    num_enumvalues = MAX_ENUM_VALUES
     for e in range(num_enumvalues) :
         enum_val_name = enum_name + "_VAL_" + str(e)
         enum_val_val = hex(e) + "UL"
@@ -68,11 +71,13 @@ for i in range(num_enums) :
 
 # structs
 structs = []
-num_structs = random.randint(1, MAX_STRUCTS)
+#num_structs = random.randint(1, MAX_STRUCTS)
+num_structs = MAX_STRUCTS
 for i in range(num_structs) :
     struct_name = "ST_" + str(i)
     struct = {"name" : struct_name, "members" : []}
-    num_members = random.randint(1, MAX_STRUCT_MEMBERS)
+    #num_members = random.randint(1, MAX_STRUCT_MEMBERS)
+    num_members = MAX_STRUCT_MEMBERS
     for e in range(num_members) :
         member_name = struct_name + "_member_" + str(e)
         type_id = random.randint(0, len(types) - 1)
@@ -91,7 +96,8 @@ for i in range(num_funcs) :
     func_name = "hal_func_" + str(i)
     func_param = structs[random.randint(0, len(structs) - 1)]
     func = {"name" : func_name, "param" : func_param, "ifs" : []}
-    num_ifs = random.randint(1, MAX_IFS)
+    #num_ifs = random.randint(1, MAX_IFS)
+    num_ifs = MAX_IFS
     for e in range(num_ifs) :
         cond_var = func_param["members"][random.randint(0, len(func_param["members"]) - 1)]
         for enum in enums :
