@@ -19,7 +19,6 @@ template_env = jinja2.Environment(loader=template_loader)
 
 # template files
 inefficiencies_template = template_env.get_template("templates/01_inefficiencies.j2")
-encapsulation_template = template_env.get_template("templates/02_encapsulation.j2")
 
 # constants
 constants = []
@@ -123,8 +122,8 @@ for i in range(num_calls) :
     calls.append(call)
 
 outputText = inefficiencies_template.render(registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
-with open(r'build/main.c', 'w') as fp:
+with open(r'build/01_main.c', 'w') as fp:
     fp.write(outputText)
 
-with open("data.csv", "a") as myfile:
+with open("01_data.csv", "a") as myfile:
     myfile.write(str(num_funcs) + "," + str(num_calls) + ",")

@@ -1,0 +1,48 @@
+basic:
+
+Time variable                                   usr           sys          wall               GGC
+ phase setup                        :   0.00 (  0%)   0.00 (  0%)   0.00 (  0%)    2779 kB ( 39%)
+ phase parsing                      :   0.02 ( 67%)   0.00 (  0%)   0.03 ( 75%)    3804 kB ( 53%)
+ phase opt and generate             :   0.01 ( 33%)   0.00 (  0%)   0.01 ( 25%)     546 kB (  8%)
+ |name lookup                       :   0.01 ( 33%)   0.00 (  0%)   0.01 ( 25%)     394 kB (  6%)
+ callgraph optimization             :   0.01 ( 33%)   0.00 (  0%)   0.00 (  0%)       0 kB (  0%)
+ callgraph functions expansion      :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     234 kB (  3%)
+ callgraph ipa passes               :   0.01 ( 33%)   0.00 (  0%)   0.00 (  0%)     213 kB (  3%)
+ preprocessing                      :   0.01 ( 33%)   0.00 (  0%)   0.00 (  0%)     162 kB (  2%)
+ parser (global)                    :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)    1510 kB ( 21%)
+ parser struct body                 :   0.01 ( 33%)   0.00 (  0%)   0.02 ( 50%)    1093 kB ( 15%)
+ initialize rtl                     :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)       7 kB (  0%)
+ TOTAL                              :   0.03          0.00          0.04           7143 kB
+
+static:
+
+Time variable                                   usr           sys          wall               GGC
+ phase setup                        :   0.00 (  0%)   0.00 (  0%)   0.00 (  0%)    2779 kB ( 39%)
+ phase parsing                      :   0.01 ( 50%)   0.01 (100%)   0.03 ( 75%)    3728 kB ( 52%)
+ phase opt and generate             :   0.01 ( 50%)   0.00 (  0%)   0.01 ( 25%)     656 kB (  9%)
+ |name lookup                       :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     393 kB (  5%)
+ callgraph functions expansion      :   0.01 ( 50%)   0.00 (  0%)   0.01 ( 25%)     321 kB (  4%)
+ preprocessing                      :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     162 kB (  2%)
+ parser (global)                    :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)    1519 kB ( 21%)
+ parser struct body                 :   0.00 (  0%)   0.01 (100%)   0.00 (  0%)    1089 kB ( 15%)
+ template instantiation             :   0.01 ( 50%)   0.00 (  0%)   0.01 ( 25%)     815 kB ( 11%)
+ expand vars                        :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)       1 kB (  0%)
+ initialize rtl                     :   0.01 ( 50%)   0.00 (  0%)   0.00 (  0%)       7 kB (  0%)
+ TOTAL                              :   0.02          0.01          0.04           7187 kB
+
+template:
+
+Time variable                                   usr           sys          wall               GGC
+ phase setup                        :   0.00 (  0%)   0.00 (  0%)   0.00 (  0%)    2779 kB ( 39%)
+ phase parsing                      :   0.01 ( 50%)   0.01 (100%)   0.03 ( 75%)    3759 kB ( 53%)
+ phase lang. deferred               :   0.01 ( 50%)   0.00 (  0%)   0.00 (  0%)      25 kB (  0%)
+ phase opt and generate             :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     539 kB (  8%)
+ |name lookup                       :   0.00 (  0%)   0.01 (100%)   0.01 ( 25%)     394 kB (  6%)
+ |overload resolution               :   0.01 ( 50%)   0.00 (  0%)   0.00 (  0%)      27 kB (  0%)
+ callgraph construction             :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)      14 kB (  0%)
+ callgraph ipa passes               :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     222 kB (  3%)
+ preprocessing                      :   0.00 (  0%)   0.00 (  0%)   0.01 ( 25%)     162 kB (  2%)
+ parser (global)                    :   0.01 ( 50%)   0.00 (  0%)   0.00 (  0%)    1510 kB ( 21%)
+ parser struct body                 :   0.00 (  0%)   0.01 (100%)   0.02 ( 50%)    1108 kB ( 16%)
+ template instantiation             :   0.01 ( 50%)   0.00 (  0%)   0.00 (  0%)     880 kB ( 12%)
+ TOTAL                              :   0.02          0.01          0.04           7116 kB

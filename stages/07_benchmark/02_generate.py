@@ -18,8 +18,8 @@ template_loader = jinja2.FileSystemLoader(searchpath="./")
 template_env = jinja2.Environment(loader=template_loader)
 
 # template files
-inefficiencies_template = template_env.get_template("templates/01_inefficiencies.j2")
-encapsulation_template = template_env.get_template("templates/02_encapsulation.j2")
+encapsulation_template = template_env.get_template("templates/02_encapsulation_basic.j2")
+encapsulation_t_template = template_env.get_template("templates/02_encapsulation_template.j2")
 
 # constants
 constants = []
@@ -125,8 +125,15 @@ for i in range(num_calls) :
     calls.append(call)
 
 outputText = encapsulation_template.render(registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
-with open(r'build/main.cpp', 'w') as fp:
+with open(r'build/02_basic_main.cpp', 'w') as fp:
     fp.write(outputText)
 
-with open("02_data.csv", "a") as myfile:
+outputText = encapsulation_t_template.render(registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
+with open(r'build/02_basic_template.cpp', 'w') as fp:
+    fp.write(outputText)
+
+with open("02_basic_data.csv", "a") as myfile:
+    myfile.write(str(num_registers) + ",")
+
+with open("02_template_data.csv", "a") as myfile:
     myfile.write(str(num_registers) + ",")
