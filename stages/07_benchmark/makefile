@@ -11,6 +11,7 @@ target_02_basic_OBJS = build/02_basic_main.o ../startup.o
 target_02_template_OBJS = build/02_basic_template.o ../startup.o
 target_03_OBJS = build/03_main.o ../startup.o
 target_04_dyn_OBJS = build/04_dyn_poly.o ../startup.o
+target_04_sta_OBJS = build/04_sta_poly.o ../startup.o
 
 # Rule for target_01
 target_01_c: $(target_01_c_OBJS)
@@ -46,6 +47,10 @@ target_04_dyn: $(target_04_dyn_OBJS)
 	$(CC) $(LDFLAGS) -o target_04_dyn.elf $(target_04_dyn_OBJS) -T $(LINKER_SCRIPT)
 	$(OBJCOPY) -O binary target_04_dyn.elf target_04_dyn.bin
 
+target_04_sta: $(target_04_sta_OBJS)
+	$(CC) $(LDFLAGS) -o target_04_sta.elf $(target_04_sta_OBJS) -T $(LINKER_SCRIPT)
+	$(OBJCOPY) -O binary target_04_sta.elf target_04_sta.bin
+
 clean:
 	@for obj in $(target_01_c_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
 	@for obj in $(target_01_cpp_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
@@ -54,3 +59,4 @@ clean:
 	@for obj in $(target_02_template_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
 	@for obj in $(target_03_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
 	@for obj in $(target_04_dyn_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done
+	@for obj in $(target_04_sta_OBJS); do if [ -f "$$obj" ]; then rm $$obj; fi; done

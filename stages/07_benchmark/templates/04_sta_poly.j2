@@ -1,0 +1,163 @@
+#include <cstdint>
+#include <concepts>
+#include <type_traits>
+
+template <std::uint32_t address>
+class CRegister {
+public:
+    static inline void set (std::uint32_t val) {
+        *(reinterpret_cast<volatile std::uint32_t *>(address)) = val;
+    }
+
+    static inline std::uint32_t get () {
+        return *(reinterpret_cast<volatile std::uint32_t *>(address));
+    }
+
+    static inline void set (std::uint32_t value, std::uint32_t bitmask) {
+        std::uint32_t tmp = get();
+        tmp &= ~bitmask;
+        tmp |= value;
+        set(tmp);
+    }
+
+    static inline void set_bits (std::uint32_t bitmask) {
+        *(reinterpret_cast<volatile std::uint32_t *>(address)) = *(reinterpret_cast<volatile std::uint32_t *>(address)) | bitmask;
+    }
+
+    static inline void clear_bits (std::uint32_t bitmask) {
+        *(reinterpret_cast<volatile std::uint32_t *>(address)) = *(reinterpret_cast<volatile std::uint32_t *>(address)) & ~bitmask;
+    }
+
+    static inline bool is_set (std::uint32_t bitmask) {
+        return (*(reinterpret_cast<volatile std::uint32_t *>(address)) & bitmask) == bitmask;
+    }
+
+    static inline bool is_cleared (std::uint32_t bitmask) {
+        return (*(reinterpret_cast<volatile std::uint32_t *>(address)) & bitmask) == 0;
+    }
+
+    static inline std::uint32_t get_bits (std::uint32_t bitmask) {
+        return *(reinterpret_cast<volatile std::uint32_t *>(address)) & bitmask;
+    }
+};
+
+{%- for constant in constants %}
+#define {{constant["name"]}} {{constant["value"]}}
+{%- endfor %}
+
+{%- for enum in enums %}
+typedef enum {
+    {%- for val in enum["values"] %}
+    {{val["name"]}} = {{val["value"]}}{% if not loop.last %},{% endif %}
+    {%- endfor %}
+} {{enum["name"]}};
+{%- endfor %}
+
+{%- for enum in enums %}
+#define IS_{{enum["name"]}}(X) ({% for val in enum["values"] %}((X) == {{val["name"]}}){% if not loop.last %} || {% endif %}{% endfor %})
+{%- endfor %}
+
+{%- for reg in registers %}
+class C{{reg["name"]}} : public CRegister<{{reg["address"]}}> {
+private:
+    static inline std::uint32_t calculate_value (std::uint32_t shift, std::uint32_t val) {
+        return val << (shift * {{reg["mask_mul"]}});
+    }
+
+    static inline std::uint32_t calculate_bitmask (std::uint32_t shift) {
+        return {{reg["mask_name"]}} << (shift * {{reg["mask_mul"]}});
+    }
+public:
+    static inline void configure (std::uint32_t shift, std::uint32_t val) {
+        set(calculate_value(shift, val), calculate_bitmask(shift));
+    }
+};
+{%- endfor %}
+
+{%- for struct in structs %}
+typedef struct {
+    {%- for member in struct["members"] %}
+    {{member["type"]}} {{member["name"]}};
+    {%- endfor %}
+} {{struct["name"]}};
+{%- endfor %}
+
+{%- for func in funcs %}
+void {{func["name"]}}({{func["param"]["name"]}}* param) {
+    __attribute__((unused)) uint32_t temp;
+
+    /* check the values */
+    {%- for member in func["param"]["members"] %}
+    {%- for enum in enums %}
+    {%- if enum["name"] == member["type"] %}
+    if (!IS_{{enum["name"]}}(param->{{member["name"]}})) { return; }
+    {%- endif %}
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for if_block in func["ifs"] %}
+    if (param->{{if_block["cond_var"]["name"]}} == {{if_block["cond_val"]["name"]}}) {
+        __attribute__((unused)) {{if_block["value"]["type"]}} val = param->{{if_block["value"]["name"]}};
+        __attribute__((unused)) {{if_block["shift"]["type"]}} shift = param->{{if_block["shift"]["name"]}};
+        {%- for reg in if_block["registers"] %}
+        C{{reg["name"]}}::configure(shift, val);
+        {%- endfor %}
+    }
+    {%- endfor %}
+}
+{%- endfor %}
+
+{%- for class in classes %}
+template <typename T>
+concept I{{class["name"]}} = requires (T impl) {
+    { impl.func_a() } -> std::same_as<int>;
+    { impl.func_b() } -> std::same_as<int>;
+};
+class C{{class["name"]}} {
+public:
+    C{{class["name"]}} () = default;
+    int func_a () { return {{loop.index}}; }
+    int func_b () { return {{loop.index + 2}}; }
+};
+static_assert(I{{class["name"]}}<C{{class["name"]}}>);
+template <I{{class["name"]}} T{{class["name"]}}>
+class C{{class["name"]}}_User {
+private:
+    T{{class["name"]}}* m_class { nullptr };
+public:
+    C{{class["name"]}}_User (T{{class["name"]}}* _class) : m_class(_class) {}
+    int use_func_a () {
+        return m_class->func_a();
+    }
+    int use_func_b () {
+        return m_class->func_b();
+    }
+};
+{%- endfor %}
+
+int main (void) {
+    {%- for struct in structs %}
+    __attribute__((unused)) {{struct["name"]}} inst_{{struct["name"]}} {};
+    {%- for member in struct["members"] %}
+    inst_{{struct["name"]}}.{{member["name"]}} = {{member["init"]}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for call in calls %}
+    {{call["func"]["name"]}}(&inst_{{call["func"]["param"]["name"]}});
+    {%- endfor %}
+
+    volatile int a;
+    volatile int b;
+
+    {%- for class in classes %}
+    C{{class["name"]}} instance_{{class["name"]}} {};
+    C{{class["name"]}}_User user_{{class["name"]}} { &instance_{{class["name"]}} };
+    a = user_{{class["name"]}}.use_func_a();
+    b = user_{{class["name"]}}.use_func_b();
+    {%- endfor %}
+    (void)a;
+    (void)b;
+
+    while (1) {}
+}

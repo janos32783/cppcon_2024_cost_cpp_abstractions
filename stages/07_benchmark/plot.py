@@ -14,7 +14,8 @@ files = {
     "02_basic_data.csv": ("num_class", 's'),
     "02_template_data.csv": ("num_class", 'd'),
     "03_data.csv": ("num_class", 'v'),
-    "04_dyn_data.csv": ("num_class", 'X')
+    "04_dyn_data.csv": ("num_class", 'X'),
+    "04_sta_data.csv": ("num_class", 'p')
 }
 
 # Prepare a dictionary to hold the data
@@ -25,17 +26,25 @@ def process_data(df, group_col):
     # Group by the specified column
     grouped = df.groupby(group_col)
     
-    means = []
+    vals = []
+    #for name, group in grouped:
+    #    # Sort the compilation times
+    #    sorted_comp_t = group['comp_t'].sort_values()
+    #    # Discard the highest and lowest
+    #    filtered_comp_t = sorted_comp_t[1:-1]
+    #    # Calculate the mean of the remaining three
+    #    mean_comp_t = filtered_comp_t.mean()
+    #    vals.append((name, mean_comp_t))
+    #for name, group in grouped:
+    #    # Get the minimum compilation time
+    #    min_comp_t = group['comp_t'].min()
+    #    vals.append((name, min_comp_t))
     for name, group in grouped:
-        # Sort the compilation times
-        sorted_comp_t = group['comp_t'].sort_values()
-        # Discard the highest and lowest
-        filtered_comp_t = sorted_comp_t[1:-1]
-        # Calculate the mean of the remaining three
-        mean_comp_t = filtered_comp_t.mean()
-        means.append((name, mean_comp_t))
+        # Calculate the median compilation time
+        median_comp_t = group['comp_t'].median()
+        vals.append((name, median_comp_t))
     
-    return pd.DataFrame(means, columns=[group_col, 'mean_comp_t'])
+    return pd.DataFrame(vals, columns=[group_col, 'mean_comp_t'])
 
 # Process all data
 processed_data = {file: process_data(data[file], group_col) for file, (group_col, _) in files.items()}
@@ -44,8 +53,8 @@ processed_data = {file: process_data(data[file], group_col) for file, (group_col
 plt.figure(figsize=(10, 6))
 
 # Define colors and markers
-colors = ['b', 'g', 'k', 'r', 'c', 'm', 'y']
-markers = ['o', '^', '*', 's', 'd', 'v', 'X']
+colors = ['b', 'g', 'k', 'r', 'c', 'm', 'y', 'orange']
+markers = ['o', '^', '*', 's', 'd', 'v', 'X', 'p']
 
 for i, (file, (group_col, marker)) in enumerate(files.items()):
     plt.plot(

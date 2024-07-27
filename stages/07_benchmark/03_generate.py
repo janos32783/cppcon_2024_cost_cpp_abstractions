@@ -20,6 +20,7 @@ template_env = jinja2.Environment(loader=template_loader)
 
 # template files
 poly_dyn_template = template_env.get_template("templates/04_dyn_poly.j2")
+poly_sta_template = template_env.get_template("templates/04_sta_poly.j2")
 
 # constants
 constants = []
@@ -135,6 +136,11 @@ for i in range(num_classes) :
 outputText = poly_dyn_template.render(classes=classes, registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
 with open(r'build/04_dyn_poly.cpp', 'w') as fp:
     fp.write(outputText)
+outputText = poly_sta_template.render(classes=classes, registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
+with open(r'build/04_sta_poly.cpp', 'w') as fp:
+    fp.write(outputText)
 
 with open("04_dyn_data.csv", "a") as myfile:
+    myfile.write(str(num_classes) + ",")
+with open("04_sta_data.csv", "a") as myfile:
     myfile.write(str(num_classes) + ",")
