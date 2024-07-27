@@ -10,6 +10,8 @@ import numpy as np
 files = {
     "01_data_c.csv": ("num_funcs", 'o'),
     "01_data_cpp.csv": ("num_funcs", '^'),
+    "01_data_inlined_c.csv": ("num_funcs", 'H'),
+    "01_data_inlined_cpp.csv": ("num_funcs", '8'),
     "01_data_classes.csv": ("num_funcs", '*'),
     "02_basic_data.csv": ("num_class", 's'),
     "02_template_data.csv": ("num_class", 'd'),
@@ -41,6 +43,7 @@ def process_data(df, group_col):
     #    vals.append((name, min_comp_t))
     for name, group in grouped:
         # Calculate the median compilation time
+        # add bin_s for binary size, comp_t for compilation time
         median_comp_t = group['comp_t'].median()
         vals.append((name, median_comp_t))
     
@@ -53,8 +56,8 @@ processed_data = {file: process_data(data[file], group_col) for file, (group_col
 plt.figure(figsize=(10, 6))
 
 # Define colors and markers
-colors = ['b', 'g', 'k', 'r', 'c', 'm', 'y', 'orange']
-markers = ['o', '^', '*', 's', 'd', 'v', 'X', 'p']
+colors = ['b', 'g', 'purple', 'brown', 'k', 'r', 'c', 'm', 'y', 'orange']
+markers = ['o', '^', 'H', '8', '*', 's', 'd', 'v', 'X', 'p']
 
 for i, (file, (group_col, marker)) in enumerate(files.items()):
     plt.plot(
