@@ -4,6 +4,7 @@ export TIMEFORMAT=%3R
 
 CSV_FILE_C_01="01_data_c.csv"
 CSV_FILE_CPP_01="01_data_cpp.csv"
+CSV_FILE_CLASSES_01="01_data_classes.csv"
 CSV_FILE_02_basic="02_basic_data.csv"
 CSV_FILE_02_template="02_template_data.csv"
 CSV_FILE_03="03_data.csv"
@@ -11,6 +12,7 @@ CSV_FILE_04_dyn="04_dyn_data.csv"
 
 echo "num_funcs,comp_t" > $CSV_FILE_C_01
 echo "num_funcs,comp_t" > $CSV_FILE_CPP_01
+echo "num_funcs,comp_t" > $CSV_FILE_CLASSES_01
 echo "num_class,comp_t" > $CSV_FILE_02_basic
 echo "num_class,comp_t" > $CSV_FILE_02_template
 echo "num_class,comp_t" > $CSV_FILE_03
@@ -27,6 +29,9 @@ for i in $( eval echo {0..$EPOCHS} ); do
     make clean
     C_COMPILE_TIME=`(time make target_01_cpp) 2>&1 >/dev/null`
     echo $C_COMPILE_TIME >> $CSV_FILE_CPP_01
+    make clean
+    C_COMPILE_TIME=`(time make target_01_classes) 2>&1 >/dev/null`
+    echo $C_COMPILE_TIME >> $CSV_FILE_CLASSES_01
     make clean
     C_COMPILE_TIME=`(time make target_02_basic) 2>&1 >/dev/null`
     echo $C_COMPILE_TIME >> $CSV_FILE_02_basic

@@ -10,6 +10,7 @@ import numpy as np
 files = {
     "01_data_c.csv": ("num_funcs", 'o'),
     "01_data_cpp.csv": ("num_funcs", '^'),
+    "01_data_classes.csv": ("num_funcs", '*'),
     "02_basic_data.csv": ("num_class", 's'),
     "02_template_data.csv": ("num_class", 'd'),
     "03_data.csv": ("num_class", 'v'),
@@ -43,8 +44,8 @@ processed_data = {file: process_data(data[file], group_col) for file, (group_col
 plt.figure(figsize=(10, 6))
 
 # Define colors and markers
-colors = ['b', 'g', 'r', 'c', 'm', 'y']
-markers = ['o', '^', 's', 'd', 'v', 'X']
+colors = ['b', 'g', 'k', 'r', 'c', 'm', 'y']
+markers = ['o', '^', '*', 's', 'd', 'v', 'X']
 
 for i, (file, (group_col, marker)) in enumerate(files.items()):
     plt.plot(
