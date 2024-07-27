@@ -18,7 +18,7 @@ running script on a dedicated thread
     taskset -c 2 ./run.sh 1 &
     taskset -c 3 ./run.sh 20 &
     taskset -c 4 ./run.sh 50 &
-    takkset -c 5 ./run.sh 100 &
+    taskset -c 5 ./run.sh 100 &
 
 
 note for me : cpu 5 is isolated

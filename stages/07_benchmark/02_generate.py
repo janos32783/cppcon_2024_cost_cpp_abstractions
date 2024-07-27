@@ -2,7 +2,7 @@ import jinja2
 import random
 import sys
 
-MAX_REGISTERS = 1000
+MAX_REGISTERS = int(sys.argv[1])
 
 MAX_CALLS = 10
 MAX_FUNCTIONS = 10
@@ -36,8 +36,8 @@ for i in range(num_constants) :
 
 # registers
 registers = []
-num_registers = random.randint(1, MAX_REGISTERS)
-#num_registers = MAX_REGISTERS
+#num_registers = random.randint(1, MAX_REGISTERS)
+num_registers = MAX_REGISTERS
 for i in range(num_registers) :
     reg_name = "REG_" + str(i)
     reg_addr = hex(0x48000000 + (4 * i)) + "UL"

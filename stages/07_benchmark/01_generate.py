@@ -2,8 +2,9 @@ import jinja2
 import random
 import sys
 
-MAX_FUNCTIONS = 1000
+MAX_FUNCTIONS = int(sys.argv[1])
 
+MAX_REGISTERS = 100
 MAX_CALLS = 10
 MAX_CONSTANTS = 100
 MAX_ENUMS = 30
@@ -33,7 +34,7 @@ for i in range(num_constants) :
 # registers
 registers = []
 #num_registers = random.randint(1, MAX_REGISTERS)
-num_registers = MAX_FUNCTIONS
+num_registers = MAX_REGISTERS
 for i in range(num_registers) :
     reg_name = "REG_" + str(i)
     reg_addr = hex(0x48000000 + (4 * i)) + "UL"
@@ -90,7 +91,8 @@ for i in range(num_structs) :
 
 # functions
 funcs = []
-num_funcs = random.randint(1, MAX_FUNCTIONS)
+#num_funcs = random.randint(1, MAX_FUNCTIONS)
+num_funcs = MAX_FUNCTIONS
 for i in range(num_funcs) :
     func_name = "hal_func_" + str(i)
     func_param = structs[random.randint(0, len(structs) - 1)]
@@ -122,8 +124,12 @@ for i in range(num_calls) :
     calls.append(call)
 
 outputText = inefficiencies_template.render(registers=registers, constants=constants, enums=enums, structs=structs, funcs=funcs, calls=calls)
-with open(r'build/01_main.c', 'w') as fp:
+with open(r'build/01_main_c.c', 'w') as fp:
+    fp.write(outputText)
+with open(r'build/01_main_cpp.cpp', 'w') as fp:
     fp.write(outputText)
 
-with open("01_data.csv", "a") as myfile:
+with open("01_data_c.csv", "a") as myfile:
+    myfile.write(str(num_funcs) + ",")
+with open("01_data_cpp.csv", "a") as myfile:
     myfile.write(str(num_funcs) + ",")

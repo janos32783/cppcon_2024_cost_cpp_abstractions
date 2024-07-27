@@ -58,7 +58,7 @@ void {{func["name"]}}({{func["param"]["name"]}}* param) {
 
 int main (void) {
     {%- for struct in structs %}
-    __attribute__((unused)) {{struct["name"]}} inst_{{struct["name"]}} = {0};
+    __attribute__((unused)) {{struct["name"]}} inst_{{struct["name"]}};
     {%- for member in struct["members"] %}
     inst_{{struct["name"]}}.{{member["name"]}} = {{member["init"]}};
     {%- endfor %}

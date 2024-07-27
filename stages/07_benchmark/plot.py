@@ -1,51 +1,61 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-from scipy.interpolate import griddata
+import glob
+import numpy as np
 
-# Read the CSV data from a file
-file_path = 'data.csv'  # Replace with the path to your CSV file
-data = pd.read_csv(file_path)
+# Read CSV files
+files = {
+    "01_data_c.csv": ("num_funcs", 'o'),
+    "01_data_cpp.csv": ("num_funcs", '^'),
+    "02_basic_data.csv": ("num_class", 's'),
+    "02_template_data.csv": ("num_class", 'd'),
+    "03_data.csv": ("num_class", 'v')
+}
 
-# Extract the data into variables
-x = data['num_funcs']
-y = data['num_calls']
-z = data['comp_t']
+# Prepare a dictionary to hold the data
+data = {file: pd.read_csv(file) for file in files}
 
-# Create a DataFrame for easy handling of duplicates
-df = pd.DataFrame({'x': x, 'y': y, 'z': z})
+# Function to process data
+def process_data(df, group_col):
+    # Group by the specified column
+    grouped = df.groupby(group_col)
+    
+    means = []
+    for name, group in grouped:
+        # Sort the compilation times
+        sorted_comp_t = group['comp_t'].sort_values()
+        # Discard the highest and lowest
+        filtered_comp_t = sorted_comp_t[1:-1]
+        # Calculate the mean of the remaining three
+        mean_comp_t = filtered_comp_t.mean()
+        means.append((name, mean_comp_t))
+    
+    return pd.DataFrame(means, columns=[group_col, 'mean_comp_t'])
 
-# Aggregate z-values for the same x-y pairs by taking the mean
-df_aggregated = df.groupby(['x', 'y']).mean().reset_index()
+# Process all data
+processed_data = {file: process_data(data[file], group_col) for file, (group_col, _) in files.items()}
 
-# Extract the aggregated data into variables
-x = df_aggregated['x']
-y = df_aggregated['y']
-z = df_aggregated['z']
+# Plotting
+plt.figure(figsize=(10, 6))
 
-# Create a 2D grid of x, y values
-x_unique = np.linspace(x.min(), x.max(), 100)
-y_unique = np.linspace(y.min(), y.max(), 100)
-x_grid, y_grid = np.meshgrid(x_unique, y_unique)
+# Define colors and markers
+colors = ['b', 'g', 'r', 'c', 'm']
+markers = ['o', '^', 's', 'd', 'v']
 
-# Interpolate the z values to the 2D grid using nearest neighbor interpolation
-z_grid = griddata((x, y), z, (x_grid, y_grid), method='nearest')
+for i, (file, (group_col, marker)) in enumerate(files.items()):
+    plt.plot(
+        processed_data[file][group_col], 
+        processed_data[file]['mean_comp_t'], 
+        label=file, 
+        marker=marker, 
+        color=colors[i], 
+        linestyle='-', 
+        markersize=8
+    )
 
-# Plot the data
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-# Plot the 3D surface
-#ax.plot_surface(x_grid, y_grid, z_grid, edgecolor='royalblue', lw=0.5, rstride=8, cstride=8, alpha=0.3)
-
-# Plot projections of the contours for each dimension
-ax.contourf(x_grid, y_grid, z_grid, zdir='z', offset=z_grid.min() - 0, cmap='coolwarm')
-ax.contourf(x_grid, y_grid, z_grid, zdir='x', offset=x_grid.min() - 0, cmap='coolwarm')
-ax.contourf(x_grid, y_grid, z_grid, zdir='y', offset=y_grid.max() + 0, cmap='coolwarm')
-
-# Set limits and labels
-ax.set(xlim=(x_grid.min() - 0, x_grid.max() + 0), ylim=(y_grid.min() - 0, y_grid.max() + 0), zlim=(z_grid.min() - 0, z_grid.max() + 0),
-       xlabel='Number of Functions', ylabel='Number of Calls', zlabel='Computation Time')
-
+plt.xlabel('Number of Functions / Classes')
+plt.ylabel('Mean Compilation Time (s)')
+plt.title('Mean Compilation Time vs Number of Functions/Classes')
+plt.legend()
+plt.grid(True)
 plt.show()
