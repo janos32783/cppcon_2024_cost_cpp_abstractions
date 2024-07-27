@@ -3,13 +3,17 @@ import matplotlib.pyplot as plt
 import glob
 import numpy as np
 
+# some more colors: y, k, orange, purple, brown
+# some more markers: X, *, p, H, 8
+
 # Read CSV files
 files = {
     "01_data_c.csv": ("num_funcs", 'o'),
     "01_data_cpp.csv": ("num_funcs", '^'),
     "02_basic_data.csv": ("num_class", 's'),
     "02_template_data.csv": ("num_class", 'd'),
-    "03_data.csv": ("num_class", 'v')
+    "03_data.csv": ("num_class", 'v'),
+    "04_dyn_data.csv": ("num_class", 'X')
 }
 
 # Prepare a dictionary to hold the data
@@ -39,8 +43,8 @@ processed_data = {file: process_data(data[file], group_col) for file, (group_col
 plt.figure(figsize=(10, 6))
 
 # Define colors and markers
-colors = ['b', 'g', 'r', 'c', 'm']
-markers = ['o', '^', 's', 'd', 'v']
+colors = ['b', 'g', 'r', 'c', 'm', 'y']
+markers = ['o', '^', 's', 'd', 'v', 'X']
 
 for i, (file, (group_col, marker)) in enumerate(files.items()):
     plt.plot(
