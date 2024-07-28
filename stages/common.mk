@@ -57,8 +57,8 @@ CXXFLAGS += -fno-rtti
 endif
 # conditional flag for measuring compilation performance -> make MEASURE=1
 ifdef MEASURE
-CFLAGS += -ftime-report
-CXXFLAGS += -ftime-report
+CFLAGS += -ftime-report -v
+CXXFLAGS += -ftime-report -v
 endif
 
 %.o : %.s

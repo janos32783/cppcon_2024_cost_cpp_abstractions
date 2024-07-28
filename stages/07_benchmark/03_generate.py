@@ -119,9 +119,9 @@ for i in range(num_funcs) :
 # calls
 calls = []
 #num_calls = random.randint(1, MAX_CALLS)
-num_calls = MAX_CALLS
+num_calls = MAX_FUNCTIONS
 for i in range(num_calls) :
-    func = funcs[random.randint(0, len(funcs) - 1)]
+    func = funcs[i]
     func_param = structs[random.randint(0, len(structs) - 1)]
     call = {"func" : func, "param" : func_param}
     calls.append(call)

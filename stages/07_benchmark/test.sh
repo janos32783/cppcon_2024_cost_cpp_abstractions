@@ -24,12 +24,13 @@ echo "num_class,comp_t,bin_s" > $CSV_FILE_03
 echo "num_class,comp_t,bin_s" > $CSV_FILE_04_dyn
 echo "num_class,comp_t,bin_s" > $CSV_FILE_04_sta
 
-for e in {1..5}; do
-    EPOCHS=199
-    for i in $( eval echo {0..$EPOCHS} ); do
-        python3 01_generate.py $((1 + $i))
-        python3 02_generate.py $((1 + $i))
-        python3 03_generate.py $((1 + $i))
+for e in {1..30}; do
+    EPOCHS=100
+    echo "cycle $e ..."
+    for i in $( eval echo {1..$EPOCHS} ); do
+        python3 01_generate.py $i
+        python3 02_generate.py $i
+        python3 03_generate.py $i
         
         C_COMPILE_TIME=`(time make target_01_c) 2>&1 >/dev/null`
         SIZE=`make size | grep main.elf | awk '{print $4}'`
@@ -72,7 +73,8 @@ for e in {1..5}; do
         echo "$C_COMPILE_TIME,$SIZE" >> $CSV_FILE_04_sta
         make clean
 
-        PROC=$(($i / ($EPOCHS / 100)))
-        echo -ne "$PROC%"\\r
+        echo -ne "    $i / $EPOCHS    "\\r
     done
+    echo ""
+    echo "done"
 done

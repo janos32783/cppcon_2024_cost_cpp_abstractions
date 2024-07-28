@@ -28,24 +28,24 @@ def process_data(df, group_col):
     # Group by the specified column
     grouped = df.groupby(group_col)
     
+    # add bin_s for binary size, comp_t for compilation time
     vals = []
-    #for name, group in grouped:
-    #    # Sort the compilation times
-    #    sorted_comp_t = group['comp_t'].sort_values()
-    #    # Discard the highest and lowest
-    #    filtered_comp_t = sorted_comp_t[1:-1]
-    #    # Calculate the mean of the remaining three
-    #    mean_comp_t = filtered_comp_t.mean()
-    #    vals.append((name, mean_comp_t))
+    for name, group in grouped:
+        # Sort the compilation times
+        sorted_comp_t = group['comp_t'].sort_values()
+        # Discard the highest and lowest
+        filtered_comp_t = sorted_comp_t[5:-5]
+        # Calculate the mean of the remaining three
+        mean_comp_t = filtered_comp_t.mean()
+        vals.append((name, mean_comp_t))
     #for name, group in grouped:
     #    # Get the minimum compilation time
     #    min_comp_t = group['comp_t'].min()
     #    vals.append((name, min_comp_t))
-    for name, group in grouped:
-        # Calculate the median compilation time
-        # add bin_s for binary size, comp_t for compilation time
-        median_comp_t = group['comp_t'].median()
-        vals.append((name, median_comp_t))
+    #for name, group in grouped:
+    #    # Calculate the median compilation time
+    #    median_comp_t = group['comp_t'].median()
+    #    vals.append((name, median_comp_t))
     
     return pd.DataFrame(vals, columns=[group_col, 'mean_comp_t'])
 
@@ -71,8 +71,8 @@ for i, (file, (group_col, marker)) in enumerate(files.items()):
     )
 
 plt.xlabel('Number of Functions / Classes')
-plt.ylabel('Mean Compilation Time (s)')
-plt.title('Mean Compilation Time vs Number of Functions/Classes')
+plt.ylabel('Compilation Time (s)')
+plt.title('Compilation Time vs Number of Functions/Classes')
 plt.legend()
 plt.grid(True)
 plt.show()
