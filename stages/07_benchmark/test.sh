@@ -24,8 +24,10 @@ echo "num_class,comp_t,bin_s" > $CSV_FILE_03
 echo "num_class,comp_t,bin_s" > $CSV_FILE_04_dyn
 echo "num_class,comp_t,bin_s" > $CSV_FILE_04_sta
 
-for e in {1..30}; do
-    EPOCHS=100
+EPOCHS=200
+
+for e in {1..20}; do
+    date
     echo "cycle $e ..."
     for i in $( eval echo {1..$EPOCHS} ); do
         python3 01_generate.py $i
