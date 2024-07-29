@@ -28,7 +28,7 @@ for file in files:
     vals = []
     for name, group in grouped:
         sorted_comp_t = group['comp_t'].sort_values()
-        filtered_comp_t = sorted_comp_t[5:-5]
+        filtered_comp_t = sorted_comp_t[3:-3]
         mean_comp_t = filtered_comp_t.mean()
         vals.append((name, mean_comp_t))
     data.append(pd.DataFrame(vals, columns=[file["group_by"], 'mean_comp_t']))
@@ -52,7 +52,7 @@ for i in range(len(data)):
             markersize=4
         )
 
-plt.axis([0, 200, 0, 1.8])
+#plt.axis([0, 200, 0, 1.8])
 plt.xlabel('Number of Functions / Classes')
 plt.ylabel('Compilation Time (s)')
 plt.title('Compilation Time vs Number of Functions/Classes')

@@ -26,7 +26,7 @@ echo "num_class,comp_t,bin_s" > $CSV_FILE_04_sta
 
 EPOCHS=200
 
-for e in {1..20}; do
+for e in {1..10}; do
     date
     echo "cycle $e ..."
     for i in $( eval echo {1..$EPOCHS} ); do
