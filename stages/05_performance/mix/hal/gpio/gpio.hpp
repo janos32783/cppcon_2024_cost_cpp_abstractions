@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hal/gpio/constants.hpp"
+#include "hal/gpio/registers.hpp"
 #include "hal/register.hpp"
 #include "hal/common.hpp"
 
@@ -65,7 +66,7 @@ public:
             CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[0], afrl_value<conf.alternate_function, pin...>(), afrl_bitmask<pin...>());
             CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->AFR[1], afrh_value<conf.alternate_function, pin...>(), afrh_bitmask<pin...>());
         }
-        CRegister::set(&reinterpret_cast<m_reg_t*>(m_address)->MODER, moder_value<conf.mode, pin...>(), moder_bitmask<pin...>());
+        COutputModeRegister<port>::template set_mode<conf.mode, pin...>();
         // TODO : external interrupt
     }
 };

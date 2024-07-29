@@ -60,6 +60,11 @@ ifdef MEASURE
 CFLAGS += -ftime-report
 CXXFLAGS += -ftime-report
 endif
+# conditional flag for compiling with original HAL -> make HAL=1
+ifdef HAL
+CFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC -DCOMPILED_FOR_CPP
+CXXFLAGS += -DUSE_HAL_DRIVER -DSTM32F030xC -DCOMPILED_FOR_CPP
+endif
 
 %.o : %.s
 	$(CXX) $(ASMFLAGS) $< -o $@

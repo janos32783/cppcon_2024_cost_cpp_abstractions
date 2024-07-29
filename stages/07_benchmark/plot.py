@@ -35,7 +35,7 @@ files = [
     { "groups" : "", "filename" : "results/pc/01_data_inlined_cpp.csv", "group_by" : "num_funcs", "label" : "static inline functions (C++)", "style_id" : 3 },
     { "groups" : "cd", "filename" : "results/pc/01_data_classes.csv", "group_by" : "num_funcs", "label" : "functions wrapped in classes (C++)", "style_id" : 4 },
     { "groups" : "efg", "filename" : "results/pc/02_basic_data.csv", "group_by" : "num_class", "label" : "encapsulation (basic)", "style_id" : 5 },
-    { "groups" : "fg", "filename" : "results/pc/02_template_data.csv", "group_by" : "num_class", "label" : "encapsulation (template)", "style_id" : 6 },
+    { "groups" : "f", "filename" : "results/pc/02_template_data.csv", "group_by" : "num_class", "label" : "encapsulation (template)", "style_id" : 6 },
     { "groups" : "g", "filename" : "results/pc/03_data.csv", "group_by" : "num_class", "label" : "inheritance", "style_id" : 7 },
     { "groups" : "hi", "filename" : "results/pc/04_dyn_data.csv", "group_by" : "num_class", "label" : "dynamic polymorphism", "style_id" : 8 },
     { "groups" : "i", "filename" : "results/pc/04_sta_data.csv", "group_by" : "num_class", "label" : "static polymorphism", "style_id" : 9 },
@@ -81,7 +81,7 @@ for g in groups:
     plt.axis([0, 200, 0, g["y"]])
     plt.xlabel('Number of Functions / Classes')
     plt.ylabel('Compilation Time (s)')
-    plt.title('Compilation Time vs Number of Functions/Classes')
+    #plt.title('Compilation Time vs Number of Functions/Classes')
     plt.legend()
     plt.grid(True)
     #plt.show()

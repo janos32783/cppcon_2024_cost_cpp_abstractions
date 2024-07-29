@@ -1,4 +1,6 @@
 #include "main.h"
+#include <stdio.h>
+#include <string.h>
 
 ADC_HandleTypeDef hadc;
 TIM_HandleTypeDef htim1;
@@ -72,14 +74,14 @@ int main(void)
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
         HAL_TIM_Base_Stop(&htim1);
-        char msg[34] = {0};
         uint32_t ticks = __HAL_TIM_GET_COUNTER(&htim1);
-        for (int i = 0; i < 32; ++i) {
-            msg[i] = (ticks & (1 << (31 - i))) ? '1' : '0';
-        }
-        msg[32] = '\r';
-        msg[33] = '\n';
-        HAL_UART_Transmit(&huart2, (uint8_t*)msg, 34, HAL_MAX_DELAY);
+        char msg[50] = {0};
+        snprintf(msg, sizeof(msg), "Time taken: %lu ticks\r\n", ticks);
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+        snprintf(msg, sizeof(msg), "ADC #1: %lu\r\n", raw6);
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+        snprintf(msg, sizeof(msg), "ADC #2: %lu\r\n", raw7);
+        HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 
         HAL_Delay(1000);
     }
