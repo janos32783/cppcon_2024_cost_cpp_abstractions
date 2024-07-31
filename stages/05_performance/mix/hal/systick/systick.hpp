@@ -40,7 +40,7 @@ public:
     }
 
     static inline void delay_us (std::uint32_t delay) {
-        std::uint32_t wait_loop_index = (delay * (m_core_clock_freq / 1000000U));
+        volatile std::uint32_t wait_loop_index = (delay * (m_core_clock_freq / 1000000U));
         while(wait_loop_index != 0U) {
             wait_loop_index--;
         }

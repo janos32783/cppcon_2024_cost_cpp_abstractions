@@ -36,6 +36,12 @@ void select_adc_channel(uint32_t channel) {
     }
 }
 
+#define PRINT_REG(REG) do { \
+    char msg[50] = {0}; \
+    snprintf(msg, sizeof(msg), #REG ": %lu\r\n", (unsigned long)(REG)); \
+    HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY); \
+} while (0)
+
 int main(void)
 {
     HAL_Init();
